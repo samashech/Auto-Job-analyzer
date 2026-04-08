@@ -15,14 +15,14 @@
 
 ## 📂 Project Structure
 
-Project RAIoT/
-├── app.py              # Flask Server
-├── analyzer.py         # Resume Parsing
-├── scraper.py          # Search URL Generator
-├── visualizer.py       # Data Visualization
-├── templates/          # HTML UI
-├── static/             # Charts
-└── uploads/            # Temp storage
+Project RAIoT/ <br>
+├── app.py              # Flask Server<br>
+├── analyzer.py         # Resume Parsing<br>
+├── scraper.py          # Search URL Generator<br>
+├── visualizer.py       # Data Visualization<br>
+├── templates/          # HTML UI<br>
+├── static/             # Charts<br>
+└── uploads/            # Temp storage<br>
 🚀 Getting Started
 1. Prerequisites
 Make sure you have Python 3.10+ installed.
