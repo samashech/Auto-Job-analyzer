@@ -15,7 +15,6 @@
 
 ## 📂 Project Structure
 
-```text
 Project RAIoT/
 ├── app.py              # Flask Server
 ├── analyzer.py         # Resume Parsing
