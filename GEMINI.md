@@ -40,3 +40,20 @@ Based on the analysis, the following technical implementations should be priorit
 ### Phase 5: Codebase Cleanup
 - **Documentation**: Update `README.md` to accurately reflect the current usage (`python app.py` instead of `python main.py`).
 - **Error Handling**: Improve error handling across the board, especially for the Playwright scraper, which is prone to timeouts and DOM changes.
+
+---
+
+## 3. Recent Improvements & Case Study (April 2026)
+
+### Optimization for Technical Resumes
+- **Dynamic Level Detection**: Refined `analyzer.py` to better distinguish between student-held "Senior" roles (e.g., Student Coordinator) and industry "Experienced" roles. Correctly identifies current B.Tech students as "Fresher" to ensure entry-level job matches.
+- **Skill-Based Query Refinement**: Implemented automated skill cleaning and sorting (ascending length) to prioritize core technologies (Python, Django, AWS) over verbose descriptions, significantly improving scraper hit rates.
+- **Multi-Source Dynamic Scraping**: Expanded `scraper.py` beyond Internshala to include dynamic scraping from **TimesJobs** and robust fallbacks for 10+ other major job boards.
+
+### Case Study: Pranav Sahu Resume
+- **Input**: Tech-heavy B.Tech resume with projects in Stable Diffusion, IoT, and Web Dev.
+- **Issue**: Previously flagged as "Experienced" due to student lab roles, leading to irrelevant management job matches.
+- **Resolution**: 
+    - Correctly identified as **Fresher**.
+    - Extracted core tech: **Linux, MySQL, Python, Flask, Django**.
+    - Generated relevant results: **Linux Engineer, Backend Developer, and Software Internships**.

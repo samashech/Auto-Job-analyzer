@@ -18,3 +18,4 @@ class JobMatch(db.Model):
     url = db.Column(db.Text, nullable=False)
     source = db.Column(db.String(100), nullable=True)
     job_type = db.Column(db.String(50), nullable=True) # Full-time, Internship, Freelance
+    relevance_score = db.Column(db.Integer, default=0) # 0-100 score based on skill match

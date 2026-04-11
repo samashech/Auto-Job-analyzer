@@ -6,26 +6,29 @@
     <title>RAIoT: Automated Job Market Intelligence & Matcher</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; scroll-behavior: smooth; }
-        .hidden { display: none !important; }
-    </style>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body class="bg-slate-50">
 
-    <!-- Auth Modal -->
     <div id="authModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 relative">
+            <div id="authErrorBanner" class="hidden mb-4 px-4 py-2 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm font-semibold"></div>
+            
             <div class="text-center mb-8">
                 <h2 id="authTitle" class="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h2>
                 <p class="text-slate-600">RAIoT bridges your profile with live market opportunities.</p>
             </div>
 
-            <form id="authForm" class="space-y-4">
-                <input id="authName" type="text" placeholder="Full Name" class="hidden w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-slate-900">
-                <input id="authEmail" type="email" placeholder="Professional Email" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-slate-900">
-                <input id="authPassword" type="password" placeholder="Password" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-slate-900">
+            <form id="authForm" class="space-y-4" novalidate>
+                <div>
+                    <input id="authName" type="text" placeholder="Full Name (Alphabets only)" class="hidden w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-slate-900">
+                </div>
+                <div>
+                    <input id="authEmail" type="email" placeholder="Professional Email" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-slate-900">
+                </div>
+                <div>
+                    <input id="authPassword" type="password" placeholder="Password" required class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-slate-900">
+                </div>
                 <button id="authSubmitBtn" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition cursor-pointer">Sign In</button>
             </form>
 
@@ -38,9 +41,7 @@
         </div>
     </div>
 
-    <!-- Landing Page (Scrollable) -->
     <div id="landingPage" class="block">
-        <!-- Navigation -->
         <nav class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -51,22 +52,22 @@
                     <a href="#features" class="text-slate-600 hover:text-slate-900">Features</a>
                     <a href="#how-it-works" class="text-slate-600 hover:text-slate-900">How It Works</a>
                     <a href="#advantages" class="text-slate-600 hover:text-slate-900">Advantages</a>
-                    <button onclick="toggleAuthMode('login')" class="text-slate-600 hover:text-slate-900">Login</button>
-                    <button onclick="toggleAuthMode('signup')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Get Started</button>
+                    <button onclick="toggleAuthMode('login')" class="text-slate-600 hover:text-slate-900 cursor-pointer">Login</button>
+                    <button onclick="toggleAuthMode('signup')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 cursor-pointer">Get Started</button>
                 </div>
             </div>
         </nav>
 
-        <!-- Hero Section -->
         <section class="bg-gradient-to-br from-white via-slate-50 to-blue-50 py-20 md:py-32">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid md:grid-cols-2 gap-12 items-center">
                     <div>
+                        <p class="text-xl text-blue-600 font-bold mb-4">RAIoT: Automated Job Market Intelligence & Matcher ??</p>
                         <h1 class="text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">From <span class="text-blue-600">Resume</span> to <span class="text-blue-700">Right Role</span></h1>
                         <p class="text-xl text-slate-600 mb-8">RAIoT uses AI-powered resume analysis to match you with live job opportunities. Create a professional resume, get instant job alerts, and land your dream role faster.</p>
                         <div class="flex gap-4 flex-wrap">
-                            <button onclick="toggleAuthMode('signup')" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition">Create Account</button>
-                            <button onclick="toggleAuthMode('login')" class="border-2 border-slate-300 text-slate-700 px-8 py-4 rounded-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition">Login</button>
+                            <button onclick="toggleAuthMode('signup')" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition cursor-pointer">Create Account</button>
+                            <button onclick="toggleAuthMode('login')" class="border-2 border-slate-300 text-slate-700 px-8 py-4 rounded-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition cursor-pointer">Login</button>
                         </div>
                     </div>
                     <div class="rounded-2xl p-8 border border-blue-100 bg-white shadow-lg">
@@ -89,7 +90,7 @@
                                 <div class="text-2xl">✓</div>
                                 <div>
                                     <h3 class="font-semibold text-slate-900">Instant Notifications</h3>
-                                    <p class="text-sm text-slate-600">Get alerts on Telegram & email for new jobs</p>
+                                    <p class="text-sm text-slate-600">Get automatic email alerts for new jobs</p>
                                 </div>
                             </div>
                             <div class="flex items-start gap-4">
@@ -105,39 +106,38 @@
             </div>
         </section>
 
-        <!-- Features Section -->
         <section id="features" class="py-16 border-t border-slate-200 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-4xl font-bold text-slate-900 mb-4 text-center">Powerful Features</h2>
                 <p class="text-center text-slate-600 mb-12 max-w-2xl mx-auto">Everything you need to land your next opportunity</p>
                 <div class="grid md:grid-cols-3 gap-8">
                     <div class="p-8 rounded-xl border border-slate-200 hover:shadow-lg transition">
-                        <div class="text-4xl mb-4">📝</div>
+                        <div class="text-4xl mb-4">??</div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Smart Resume Builder</h3>
                         <p class="text-slate-600">Answer guided questions and we'll create a professional 1-2 page resume instantly. Add your professional photo for a polished look.</p>
                     </div>
                     <div class="p-8 rounded-xl border border-slate-200 hover:shadow-lg transition">
-                        <div class="text-4xl mb-4">🎯</div>
+                        <div class="text-4xl mb-4">??</div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Precision Job Matching</h3>
                         <p class="text-slate-600">Our AI analyzes your profile and matches you with opportunities that align with your skills, experience, and career goals.</p>
                     </div>
                     <div class="p-8 rounded-xl border border-slate-200 hover:shadow-lg transition">
-                        <div class="text-4xl mb-4">🔔</div>
+                        <div class="text-4xl mb-4">??</div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Real-time Alerts</h3>
-                        <p class="text-slate-600">Get instant notifications on Telegram and email when new jobs match your profile or when your applications get selected.</p>
+                        <p class="text-slate-600">Get instant email notifications when new jobs match your profile or when your applications get selected.</p>
                     </div>
                     <div class="p-8 rounded-xl border border-slate-200 hover:shadow-lg transition">
-                        <div class="text-4xl mb-4">🔗</div>
+                        <div class="text-4xl mb-4">??</div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Shareable Profile</h3>
                         <p class="text-slate-600">Get a unique link to your professional resume. Share with recruiters, peers, or save as PDF with a single click.</p>
                     </div>
                     <div class="p-8 rounded-xl border border-slate-200 hover:shadow-lg transition">
-                        <div class="text-4xl mb-4">📊</div>
+                        <div class="text-4xl mb-4">??</div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Application Tracking</h3>
-                        <p class="text-slate-600">Track all your applications, mark when you're selected, and RAIoT will notify you automatically via your preferred channels.</p>
+                        <p class="text-slate-600">Track all your applications, mark when you're selected, and RAIoT will notify you automatically.</p>
                     </div>
                     <div class="p-8 rounded-xl border border-slate-200 hover:shadow-lg transition">
-                        <div class="text-4xl mb-4">🌍</div>
+                        <div class="text-4xl mb-4">??</div>
                         <h3 class="text-xl font-bold text-slate-900 mb-3">Multi-Platform Jobs</h3>
                         <p class="text-slate-600">Access opportunities from Indeed, LinkedIn, Naukri, and other major job boards all in one place.</p>
                     </div>
@@ -145,7 +145,6 @@
             </div>
         </section>
 
-        <!-- How It Works -->
         <section id="how-it-works" class="py-16 bg-slate-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-4xl font-bold text-slate-900 mb-4 text-center">How RAIoT Works</h2>
@@ -169,13 +168,12 @@
                     <div class="text-center">
                         <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-4">4</div>
                         <h3 class="font-bold text-slate-900 mb-2">Get Alerts</h3>
-                        <p class="text-slate-600 text-sm">Instant Telegram & email notifications on selection</p>
+                        <p class="text-slate-600 text-sm">Instant email notifications on selection</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Advantages Section -->
         <section id="advantages" class="py-16 bg-white border-t border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-4xl font-bold text-slate-900 mb-4 text-center">Why Choose RAIoT?</h2>
@@ -189,35 +187,35 @@
                         </div>
                     </div>
                     <div class="flex gap-6">
-                        <div class="text-3xl flex-shrink-0">🤖</div>
+                        <div class="text-3xl flex-shrink-0">??</div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-900 mb-2">AI Powered Matching</h3>
                             <p class="text-slate-600">Advanced algorithms analyze your profile and find the exact opportunities you're qualified for.</p>
                         </div>
                     </div>
                     <div class="flex gap-6">
-                        <div class="text-3xl flex-shrink-0">📱</div>
+                        <div class="text-3xl flex-shrink-0">??</div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-900 mb-2">Mobile First Alerts</h3>
-                            <p class="text-slate-600">Stay connected with instant Telegram notifications. Never miss an opportunity again.</p>
+                            <p class="text-slate-600">Stay connected with instant notifications. Never miss an opportunity again.</p>
                         </div>
                     </div>
                     <div class="flex gap-6">
-                        <div class="text-3xl flex-shrink-0">🔒</div>
+                        <div class="text-3xl flex-shrink-0">??</div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-900 mb-2">Privacy Protected</h3>
                             <p class="text-slate-600">Your data is secure. Control who sees your resume and how it's shared.</p>
                         </div>
                     </div>
                     <div class="flex gap-6">
-                        <div class="text-3xl flex-shrink-0">📈</div>
+                        <div class="text-3xl flex-shrink-0">??</div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-900 mb-2">Career Growth</h3>
                             <p class="text-slate-600">Track your applications, learn what works, and improve your success rate with every opportunity.</p>
                         </div>
                     </div>
                     <div class="flex gap-6">
-                        <div class="text-3xl flex-shrink-0">🌟</div>
+                        <div class="text-3xl flex-shrink-0">??</div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-900 mb-2">Professional Results</h3>
                             <p class="text-slate-600">Our professionally designed resume template makes you stand out to recruiters instantly.</p>
@@ -227,16 +225,14 @@
             </div>
         </section>
 
-        <!-- CTA Section -->
         <section class="py-16 bg-gradient-to-r from-blue-600 to-blue-700">
             <div class="max-w-4xl mx-auto text-center px-4">
                 <h2 class="text-4xl font-bold text-white mb-4">Ready to Land Your Dream Job?</h2>
                 <p class="text-blue-100 text-lg mb-8">Join thousands of professionals using RAIoT to accelerate their career growth.</p>
-                <button onclick="toggleAuthMode('signup')" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-slate-50 transition text-lg">Get Started Now</button>
+                <button onclick="toggleAuthMode('signup')" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-slate-50 transition text-lg cursor-pointer">Get Started Now</button>
             </div>
         </section>
 
-        <!-- Footer -->
         <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <p class="mb-2">© 2026 RAIoT - Automated Job Market Intelligence & Matcher</p>
@@ -245,7 +241,6 @@
         </footer>
     </div>
 
-    <!-- Resume Entry Page (After Auth) -->
     <div id="resumeEntryPage" class="hidden min-h-screen bg-slate-50">
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -253,7 +248,7 @@
                     <div class="w-10 h-10 bg-blue-600 rounded-lg text-white flex items-center justify-center font-black">R</div>
                     <span class="text-xl font-bold text-slate-900">RAIoT</span>
                 </div>
-                <button onclick="logout()" class="text-slate-600 hover:text-slate-900">Logout</button>
+                <button onclick="logout()" class="text-slate-600 hover:text-slate-900 font-semibold cursor-pointer">Logout</button>
             </div>
         </header>
 
@@ -266,33 +261,30 @@
             </div>
 
             <div class="grid md:grid-cols-2 gap-8">
-                <!-- Upload Resume Option -->
                 <div class="bg-white rounded-2xl border-2 border-slate-200 p-8 hover:shadow-lg hover:border-blue-400 transition cursor-pointer" onclick="showResumeUploadForm()">
-                    <div class="text-5xl mb-4">📄</div>
+                    <div class="text-5xl mb-4">??</div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">Upload Existing Resume</h2>
                     <p class="text-slate-600 mb-6">I already have a professional resume. I want to upload it and get started with job matching.</p>
-                    <button class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700">Upload Resume</button>
+                    <button class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 cursor-pointer">Upload Resume</button>
                 </div>
 
-                <!-- Create Resume Option -->
                 <div class="bg-white rounded-2xl border-2 border-slate-200 p-8 hover:shadow-lg hover:border-emerald-400 transition cursor-pointer" onclick="navigateToResumeBuilder()">
                     <div class="text-5xl mb-4">✨</div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">Create New Resume</h2>
                     <p class="text-slate-600 mb-6">I don't have a resume yet. Let me answer some questions and RAIoT will create a professional one for me.</p>
-                    <button class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-lg hover:bg-emerald-700">Build Resume</button>
+                    <button class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-lg hover:bg-emerald-700 cursor-pointer">Build Resume</button>
                 </div>
             </div>
 
-            <!-- Upload Resume Form (Hidden) -->
             <div id="uploadResumeForm" class="hidden mt-12 bg-white rounded-2xl border border-slate-200 p-8">
                 <h2 class="text-2xl font-bold text-slate-900 mb-6">Upload Your Resume</h2>
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-900 mb-2">Resume File</label>
-                        <input id="resumeFile" type="file" accept=".txt,.md,.pdf,.doc,.docx" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Resume File <span class="text-red-500">*</span></label>
+                        <input id="resumeFile" type="file" accept=".txt,.md,.pdf,.doc,.docx" required class="w-full px-4 py-3 rounded-lg border border-slate-200">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-900 mb-2">Desired Job Type</label>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Desired Job Type <span class="text-red-500">*</span></label>
                         <select id="jobType" class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white">
                             <option value="Full-time">Full-Time Job</option>
                             <option value="Part-time">Part-Time Job</option>
@@ -306,19 +298,58 @@
                         <p class="text-xs text-slate-600 mt-2">JPG, PNG. Recommended size: 300x300px</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-900 mb-2">Telegram ID (for job alerts)</label>
-                        <input id="uploadedTelegramId" type="text" placeholder="Your Telegram chat ID" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Telegram ID (Optional)</label>
+                        <input id="uploadedTelegramId" type="text" placeholder="Enter Telegram Chat ID for alerts" class="w-full px-4 py-3 rounded-lg border border-slate-200">
                     </div>
                     <div class="flex gap-4 pt-4">
-                        <button onclick="handleResumeUpload()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700">Process & Continue</button>
-                        <button onclick="showResumeEntryOptions()" class="flex-1 border border-slate-300 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-50">Back</button>
+                        <button onclick="handleResumeUpload()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 cursor-pointer">Process & Continue</button>
+                        <button onclick="showResumeEntryOptions()" class="flex-1 border border-slate-300 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-50 cursor-pointer">Back</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="processingOverlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-10 text-center">
+                    <div class="mb-6">
+                        <div class="animate-spin rounded-full h-20 w-20 border-b-4 border-blue-600 mx-auto"></div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-3">Processing Your Resume</h2>
+                    <p id="processingStatus" class="text-slate-600 mb-6">Analyzing resume and extracting skills...</p>
+                    
+                    <div class="space-y-3 text-left bg-slate-50 rounded-lg p-4 text-sm">
+                        <div id="step1" class="flex items-center gap-3 text-slate-600">
+                            <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <span>Extracting skills from resume...</span>
+                        </div>
+                        <div id="step2" class="flex items-center gap-3 text-slate-600">
+                            <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <span>Searching job boards for matching positions...</span>
+                        </div>
+                        <div id="step3" class="flex items-center gap-3 text-slate-600">
+                            <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <span>Ranking jobs by relevance to your profile...</span>
+                        </div>
+                        <div id="step4" class="flex items-center gap-3 text-slate-600">
+                            <div class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <span>Preparing your personalized dashboard...</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 mt-6">This may take 1-3 minutes depending on the number of skills</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Resume Builder Form -->
     <div id="resumeBuilderPage" class="hidden min-h-screen bg-slate-50">
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -326,88 +357,144 @@
                     <div class="w-10 h-10 bg-blue-600 rounded-lg text-white flex items-center justify-center font-black">R</div>
                     <span class="text-xl font-bold text-slate-900">Resume Builder</span>
                 </div>
-                <button onclick="logout()" class="text-slate-600 hover:text-slate-900">Exit</button>
+                <button onclick="logout()" class="text-slate-600 hover:text-slate-900 font-semibold cursor-pointer">Exit</button>
             </div>
         </header>
 
         <main class="max-w-4xl mx-auto px-4 py-8">
             <div id="notifyBannerBuilder" class="hidden mb-6 px-4 py-3 rounded-lg border text-sm font-medium"></div>
 
-            <form id="resumeBuilderForm" class="space-y-8">
+            <form id="resumeBuilderForm" class="space-y-8" novalidate>
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Personal Information</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="fullName" required placeholder="Full Name" class="px-4 py-3 rounded-lg border border-slate-200">
-                        <input name="professionalEmail" required type="email" placeholder="Professional Email" class="px-4 py-3 rounded-lg border border-slate-200">
-                        <input name="contactNumber" required placeholder="Contact Number" class="px-4 py-3 rounded-lg border border-slate-200">
-                        <input name="jobTitle" placeholder="Current Job Title (e.g., Senior Developer)" class="px-4 py-3 rounded-lg border border-slate-200">
-                        <input name="location" placeholder="Location / City" class="px-4 py-3 rounded-lg border border-slate-200">
-                        <input name="telegram" placeholder="Telegram ID (for job alerts)" class="px-4 py-3 rounded-lg border border-slate-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Full Name <span class="text-red-500">*</span></label>
+                            <input name="fullName" required placeholder="Alphabets only" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Professional Email <span class="text-red-500">*</span></label>
+                            <input name="professionalEmail" required type="email" placeholder="email@example.com" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Contact Number <span class="text-red-500">*</span></label>
+                            <input name="contactNumber" required placeholder="10-digit number" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Current Job Title <span class="text-red-500">*</span></label>
+                            <input name="jobTitle" required placeholder="e.g., Senior Developer" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Location / City <span class="text-red-500">*</span></label>
+                            <input name="location" required placeholder="City, Country" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Telegram ID (Optional)</label>
+                            <input name="telegram" placeholder="Enter Telegram Chat ID" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Desired Job Type <span class="text-red-500">*</span></label>
+                            <select name="jobType" class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white">
+                                <option value="Full-time">Full-Time Job</option>
+                                <option value="Part-time">Part-Time Job</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Freelance">Freelancing</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Professional Photo</h2>
                     <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-900 mb-2">Upload a professional headshot</label>
-                        <input id="builderPhoto" type="file" accept="image/*" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Upload a professional headshot <span class="text-red-500">*</span></label>
+                        <input id="builderPhoto" type="file" accept="image/*" required class="w-full px-4 py-3 rounded-lg border border-slate-200">
                         <p class="text-xs text-slate-600 mt-2">JPG, PNG. Recommended: Professional headshot, 300x300px</p>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">About You</h2>
-                    <textarea name="about" rows="4" placeholder="Write a brief professional summary (2-3 sentences about your background, expertise, and career goals)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Professional Summary <span class="text-red-500">*</span></label>
+                        <textarea name="about" required rows="4" placeholder="Write a brief professional summary (Minimum 20 words)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Profiles & Links</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input name="linkedin" placeholder="LinkedIn Profile URL" class="px-4 py-3 rounded-lg border border-slate-200">
-                        <input name="github" placeholder="GitHub Profile URL" class="px-4 py-3 rounded-lg border border-slate-200">
-                        <input name="portfolio" placeholder="Portfolio Website URL" class="px-4 py-3 rounded-lg border border-slate-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">LinkedIn Profile URL <span class="text-red-500">*</span></label>
+                            <input name="linkedin" required placeholder="https://linkedin.com/in/..." class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">GitHub Profile URL <span class="text-red-500">*</span></label>
+                            <input name="github" required placeholder="https://github.com/..." class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">Portfolio Website URL <span class="text-red-500">*</span></label>
+                            <input name="portfolio" required placeholder="https://yourportfolio.com" class="w-full px-4 py-3 rounded-lg border border-slate-200">
+                        </div>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Education</h2>
-                    <textarea name="education" rows="3" placeholder="Degree, University, Year. Example: B.Tech in Computer Science, IIT Delhi, 2021" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Educational Background <span class="text-red-500">*</span></label>
+                        <textarea name="education" required rows="4" placeholder="List your degrees, universities, and years. (Minimum 20 words)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Technical Skills</h2>
-                    <textarea name="technicalSkills" rows="3" placeholder="List your technical skills separated by commas. Example: Python, Django, React, AWS, Docker" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Core Technical Skills <span class="text-red-500">*</span></label>
+                        <textarea name="technicalSkills" required rows="4" placeholder="List your technical skills separated by commas. Example: Python, Django, React, AWS, Docker (Minimum 20 words)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Soft Skills</h2>
-                    <textarea name="softSkills" rows="3" placeholder="Example: Leadership, Communication, Problem Solving, Team Collaboration" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Professional Soft Skills <span class="text-red-500">*</span></label>
+                        <textarea name="softSkills" required rows="4" placeholder="Example: Leadership, Communication, Problem Solving, Team Collaboration (Minimum 20 words)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Experience & Achievements</h2>
-                    <textarea name="experienceAchievements" rows="4" placeholder="Describe your professional experience and key achievements. Format: Position at Company (Year-Year) - Brief description of responsibilities and accomplishments." class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Work History <span class="text-red-500">*</span></label>
+                        <textarea name="experienceAchievements" required rows="5" placeholder="Describe your professional experience. Format: Position at Company (Year-Year) - Responsibilities (Minimum 20 words)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Key Projects</h2>
-                    <textarea name="projects" rows="4" placeholder="List your key projects. Example: Project Name (Tech Stack) - Brief description of what you built and the impact." class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Noteworthy Projects <span class="text-red-500">*</span></label>
+                        <textarea name="projects" required rows="5" placeholder="List your key projects and the tech stack used. (Minimum 20 words)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl border border-slate-200 p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-6">Certifications</h2>
-                    <textarea name="certifications" rows="3" placeholder="List certifications. Example: AWS Certified Solutions Architect, Google Cloud Professional Data Engineer" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-900 mb-2">Professional Certifications <span class="text-red-500">*</span></label>
+                        <textarea name="certifications" required rows="4" placeholder="List your professional certifications. (Minimum 20 words)" class="w-full px-4 py-3 rounded-lg border border-slate-200"></textarea>
+                    </div>
                 </div>
 
                 <div class="flex gap-4 pb-8">
-                    <button type="submit" class="flex-1 bg-emerald-600 text-white font-semibold py-4 rounded-lg hover:bg-emerald-700 text-lg">Generate Professional Resume</button>
-                    <button type="button" onclick="resumeEntryBackClick()" class="flex-1 border border-slate-300 text-slate-700 font-semibold py-4 rounded-lg hover:bg-slate-50">Back</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white font-semibold py-4 rounded-lg hover:bg-emerald-700 text-lg cursor-pointer">Generate Professional Resume</button>
+                    <button type="button" onclick="resumeEntryBackClick()" class="flex-1 border border-slate-300 text-slate-700 font-semibold py-4 rounded-lg hover:bg-slate-50 cursor-pointer">Back</button>
                 </div>
             </form>
         </main>
     </div>
 
-    <!-- Professional Resume Display & Sharing -->
     <div id="resumeDisplayPage" class="hidden min-h-screen bg-slate-50">
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -416,9 +503,9 @@
                     <span class="text-xl font-bold text-slate-900">Your Professional Resume</span>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="downloadResumePDF()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold">Download PDF</button>
-                    <button onclick="shareResume()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-semibold">Share</button>
-                    <button onclick="continueToJobMatching()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-semibold">Continue to Jobs</button>
+                    <button onclick="downloadResumePDF()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold cursor-pointer">Download PDF</button>
+                    <button onclick="shareResume()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-semibold cursor-pointer">Share</button>
+                    <button onclick="continueToJobMatching()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-semibold cursor-pointer">Continue to Dashboard</button>
                 </div>
             </div>
         </header>
@@ -426,12 +513,9 @@
         <main class="max-w-5xl mx-auto px-4 py-8">
             <div id="notifyBannerResume" class="hidden mb-6 px-4 py-3 rounded-lg border text-sm font-medium"></div>
 
-            <!-- Resume Preview -->
             <div id="resumeContainer" class="bg-white rounded-xl shadow-lg p-12 my-8">
-                <!-- This will be dynamically populated -->
-            </div>
+                </div>
 
-            <!-- Share Modal -->
             <div id="shareModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-4">Share Your Resume</h2>
@@ -442,36 +526,35 @@
                             <label class="block text-sm font-semibold text-slate-900 mb-2">Unique Share Link</label>
                             <div class="flex gap-2">
                                 <input type="text" id="shareLink" readonly class="flex-1 px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 text-sm">
-                                <button onclick="copyToClipboard()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">Copy</button>
+                                <button onclick="copyToClipboard()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold cursor-pointer">Copy</button>
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-900 mb-2">Or Email</label>
                             <div class="flex gap-2">
                                 <input type="email" id="shareEmail" placeholder="recipient@example.com" class="flex-1 px-4 py-2 rounded-lg border border-slate-200">
-                                <button onclick="emailResume()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-semibold">Send</button>
+                                <button onclick="emailResume()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-semibold cursor-pointer">Send</button>
                             </div>
                         </div>
                     </div>
-
-                    <button type="button" onclick="closeShareModal()" class="w-full mt-6 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-semibold">Done</button>
+                    <button type="button" onclick="closeShareModal()" class="w-full mt-6 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-semibold cursor-pointer">Done</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Dashboard (Job Matching) -->
     <div id="dashboardPage" class="hidden">
         <div class="min-h-screen bg-slate-50">
             <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-blue-600 rounded-lg text-white flex items-center justify-center font-black">R</div>
-                        <span class="text-xl font-bold text-slate-900">Job Matches</span>
+                        <span class="text-xl font-bold text-slate-900">Personalized Dashboard</span>
                     </div>
-                    <div class="flex gap-4">
-                        <button onclick="viewMyResume()" class="text-slate-600 hover:text-slate-900 font-semibold">View Resume</button>
-                        <button onclick="logout()" class="text-slate-600 hover:text-slate-900">Logout</button>
+                    <div class="flex gap-4 items-center">
+                        <button onclick="goToUpdateResume()" class="text-blue-600 font-semibold hover:text-blue-800 border border-blue-200 px-3 py-1 rounded-md cursor-pointer">Update Resume</button>
+                        <button onclick="viewMyResume()" class="text-slate-600 font-semibold hover:text-slate-900 cursor-pointer">View Resume</button>
+                        <button onclick="logout()" class="bg-slate-200 text-slate-700 px-4 py-1 rounded-md font-semibold hover:bg-slate-300 cursor-pointer">Logout</button>
                     </div>
                 </div>
             </header>
@@ -480,11 +563,12 @@
                 <div id="notifyBannerDash" class="hidden mb-6 px-4 py-3 rounded-lg border text-sm font-medium"></div>
 
                 <div class="flex gap-4 border-b border-slate-200 mb-8 overflow-x-auto">
-                    <button onclick="switchTab('jobs')" id="jobsTab" class="px-4 py-3 font-semibold border-b-2 border-blue-600 text-blue-600">Matched Jobs</button>
-                    <button onclick="switchTab('interested')" id="interestedTab" class="px-4 py-3 font-semibold border-b-2 border-transparent text-slate-600">My Applications</button>
+                    <button onclick="switchTab('jobs')" id="jobsTab" class="px-4 py-3 font-semibold border-b-2 border-blue-600 text-blue-600 cursor-pointer">Skill-Based Jobs</button>
+                    <button onclick="switchTab('interested')" id="interestedTab" class="px-4 py-3 font-semibold border-b-2 border-transparent text-slate-600 cursor-pointer">My Applications & Selections</button>
                 </div>
 
-                <div id="jobsContent" class="grid md:grid-cols-2 gap-6"></div>
+                <div id="jobsContent" class="space-y-8">
+                    </div>
 
                 <div id="interestedContent" class="hidden bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <table class="w-full">
@@ -503,518 +587,6 @@
         </div>
     </div>
 
-    <script>
-        const INTEGRATION_CONFIG = {
-            TELEGRAM_BOT_TOKEN: '',
-            JOB_SCRAPE_API: '',
-            EMAIL_NOTIFY_API: ''
-        };
-
-        let isSignupMode = false;
-        const appState = {
-            fullName: '',
-            registeredEmail: '',
-            telegramId: '',
-            jobTitle: '',
-            location: '',
-            resume: null,
-            resumePhoto: null,
-            jobs: [],
-            interested: [],
-            shareToken: Math.random().toString(36).substr(2, 9)
-        };
-
-        const fallbackJobs = [
-            { id: 101, title: 'Python Backend Engineer', company: 'ScaleGrid', location: 'Remote', salary: '$140K - $170K', source: 'Indeed', description: 'Build scalable APIs and data pipelines.', matchScore: 91, url: '#' }
-        ];
-
-        // ============ AUTH FUNCTIONS ============
-        function toggleAuthMode(mode) {
-            isSignupMode = mode === 'signup';
-            document.getElementById('authTitle').textContent = isSignupMode ? 'Create Professional Account' : 'Welcome Back';
-            document.getElementById('authName').classList.toggle('hidden', !isSignupMode);
-            document.getElementById('authName').required = isSignupMode;
-            document.getElementById('authSubmitBtn').textContent = isSignupMode ? 'Sign Up' : 'Sign In';
-            document.getElementById('authToggleText').textContent = isSignupMode ? 'Already have an account?' : "Don't have an account?";
-            document.getElementById('authToggleBtn').textContent = isSignupMode ? 'Sign in' : 'Sign up';
-            document.getElementById('authModal').classList.remove('hidden');
-        }
-
-        function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
-        }
-
-        async function handleAuthSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('authName').value.trim();
-            const email = document.getElementById('authEmail').value.trim();
-            
-            // Mock authentication since backend routes were removed
-            appState.fullName = name || 'Professional';
-            appState.registeredEmail = email;
-
-            closeAuthModal();
-            document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('resumeEntryPage').classList.remove('hidden');
-            showResumeEntryOptions();
-
-            if (isSignupMode) {
-                showBannerResume('Professional account created! Now let\'s build your profile.', 'success', 'notifyBanner');
-            } else {
-                showBannerResume(`Welcome back, ${appState.fullName}!`, 'success', 'notifyBanner');
-            }
-        }
-
-        // ============ RESUME ENTRY FUNCTIONS ============
-        function showResumeEntryOptions() {
-            document.getElementById('uploadResumeForm').classList.add('hidden');
-        }
-
-        function showResumeUploadForm() {
-            document.getElementById('uploadResumeForm').classList.remove('hidden');
-        }
-
-        async function handleResumeUpload() {
-            const fileInput = document.getElementById('resumeFile');
-            const photoInput = document.getElementById('uploadedPhoto');
-            const telegramInput = document.getElementById('uploadedTelegramId');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                showBannerResume('Please upload your resume file.', 'warning', 'notifyBanner');
-                return;
-            }
-
-            appState.telegramId = telegramInput.value.trim();
-            
-            if (photoInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => { appState.resumePhoto = e.target.result; };
-                reader.readAsDataURL(photoInput.files[0]);
-            }
-
-            const jobType = document.getElementById('jobType').value;
-            const formData = new FormData();
-            formData.append('resume', file);
-            formData.append('job_type', jobType);
-
-            try {
-                showBannerResume('Analyzing resume... Please wait.', 'info', 'notifyBanner');
-                
-                // Fetching from the original /upload endpoint
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Upload failed');
-
-                appState.fullName = data.name || appState.fullName;
-                appState.registeredEmail = data.email || appState.registeredEmail;
-
-                appState.resume = {
-                    fileName: file.name,
-                    uploadedMode: true,
-                    fullName: appState.fullName,
-                    professionalEmail: appState.registeredEmail,
-                    contactNumber: data.phone || '',
-                    jobTitle: data.level,
-                    jobType: data.job_type || 'Full-time',
-                    technicalSkills: data.skills ? data.skills.join(', ') : '',
-                    chartUrl: data.chart_url,
-                    resumeUrl: data.resume_url
-                };
-
-                // Map jobs immediately since they come directly from /upload
-                if (data.jobs && data.jobs.length > 0) {
-                    appState.jobs = data.jobs.map((job, index) => ({
-                        id: index + 1,
-                        title: job.title || `${data.level} Role - ${job.name}`,
-                        company: job.company || "Various Companies",
-                        source: job.name || job.source,
-                        matchScore: 90,
-                        description: job.description || `A great match for your skills: ${data.skills.slice(0,3).join(', ')}`,
-                        url: job.url
-                    }));
-                } else {
-                    appState.jobs = fallbackJobs;
-                }
-                
-                showBannerResume('Resume uploaded and analyzed successfully!', 'success', 'notifyBanner');
-                setTimeout(() => generateResumeDisplay(), 1000);
-            } catch (error) {
-                showBannerResume(error.message, 'error', 'notifyBanner');
-            }
-        }
-
-        function navigateToResumeBuilder() {
-            document.getElementById('resumeEntryPage').classList.add('hidden');
-            document.getElementById('resumeBuilderPage').classList.remove('hidden');
-        }
-
-        function resumeEntryBackClick() {
-            document.getElementById('resumeBuilderPage').classList.add('hidden');
-            document.getElementById('resumeEntryPage').classList.remove('hidden');
-            showResumeEntryOptions();
-        }
-
-        // ============ RESUME BUILDER FUNCTIONS ============
-        async function handleResumeBuilderSubmit(e) {
-            e.preventDefault();
-            const form = new FormData(e.target);
-            const profile = Object.fromEntries(form.entries());
-
-            appState.fullName = profile.fullName;
-            appState.registeredEmail = profile.professionalEmail;
-            appState.jobTitle = profile.jobTitle;
-            appState.location = profile.location;
-            appState.telegramId = (profile.telegram || '').trim();
-            appState.resume = profile;
-
-            if (document.getElementById('builderPhoto').files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => { 
-                    appState.resumePhoto = e.target.result;
-                    generateResumeDisplay();
-                };
-                reader.readAsDataURL(document.getElementById('builderPhoto').files[0]);
-            } else {
-                generateResumeDisplay();
-            }
-        }
-
-        function generateResumeDisplay() {
-            document.getElementById('resumeBuilderPage').classList.add('hidden');
-            document.getElementById('resumeDisplayPage').classList.remove('hidden');
-            renderProfessionalResume();
-        }
-
-        function renderProfessionalResume() {
-            const resume = appState.resume;
-            const container = document.getElementById('resumeContainer');
-
-            if (resume.uploadedMode && resume.resumeUrl && resume.fileName.toLowerCase().endsWith('.pdf')) {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center">
-                        <h2 class="text-2xl font-bold text-slate-900 mb-6">Your Uploaded Resume</h2>
-                        <iframe src="${resume.resumeUrl}" class="w-full h-[800px] border border-slate-200 rounded-lg"></iframe>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = `
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <!-- Photo & Contact -->
-                    <div class="md:col-span-1 flex flex-col items-center">
-                        ${appState.resumePhoto ? `<img src="${appState.resumePhoto}" alt="Profile" class="w-32 h-32 rounded-full object-cover border-4 border-blue-600 mb-4">` : `<div class="w-32 h-32 rounded-full bg-slate-200 flex items-center justify-center mb-4 text-slate-400 text-4xl">👤</div>`}
-                        <h1 class="text-2xl font-bold text-slate-900 text-center">${resume.fullName || 'Your Name'}</h1>
-                        <p class="text-blue-600 font-semibold text-center">${resume.jobTitle || 'Professional Title'}</p>
-                        <p class="text-slate-500 text-xs font-semibold text-center uppercase tracking-wider mt-1">Seeking: ${resume.jobType || 'Full-time'}</p>
-                        <div class="mt-6 pt-6 border-t border-slate-200 w-full text-sm space-y-3 text-slate-700">
-                            <div class="break-words"><strong>Email:</strong> ${resume.professionalEmail || ''}</div>
-                            <div><strong>Phone:</strong> ${resume.contactNumber || ''}</div>
-                            <div><strong>Location:</strong> ${resume.location || ''}</div>
-                            ${resume.linkedin ? `<div><a href="${resume.linkedin}" class="text-blue-600 hover:underline">LinkedIn</a></div>` : ''}
-                            ${resume.github ? `<div><a href="${resume.github}" class="text-blue-600 hover:underline">GitHub</a></div>` : ''}
-                            ${resume.portfolio ? `<div><a href="${resume.portfolio}" class="text-blue-600 hover:underline">Portfolio</a></div>` : ''}
-                        </div>
-                    </div>
-
-                    <!-- Main Content -->
-                    <div class="md:col-span-3 space-y-6">
-                        <!-- About -->
-                        ${resume.about ? `
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 border-b-2 border-blue-600 pb-2 mb-3">PROFESSIONAL SUMMARY</h2>
-                            <p class="text-slate-700 text-sm leading-relaxed">${resume.about}</p>
-                        </div>
-                        ` : ''}
-
-                        <!-- Skills -->
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 border-b-2 border-blue-600 pb-2 mb-3">SKILLS</h2>
-                            ${resume.chartUrl ? `<div class="mb-4"><img src="${resume.chartUrl}" alt="Skills Chart" class="w-full max-w-md mx-auto rounded-lg border border-slate-200"></div>` : ''}
-                            <div class="grid grid-cols-2 gap-4">
-                                ${resume.technicalSkills ? `
-                                <div>
-                                    <p class="font-semibold text-slate-900 text-sm mb-1">Technical</p>
-                                    <p class="text-slate-700 text-sm">${resume.technicalSkills}</p>
-                                </div>
-                                ` : ''}
-                                ${resume.softSkills ? `
-                                <div>
-                                    <p class="font-semibold text-slate-900 text-sm mb-1">Professional</p>
-                                    <p class="text-slate-700 text-sm">${resume.softSkills}</p>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-
-                        <!-- Experience -->
-                        ${resume.experienceAchievements ? `
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 border-b-2 border-blue-600 pb-2 mb-3">EXPERIENCE & ACHIEVEMENTS</h2>
-                            <p class="text-slate-700 text-sm whitespace-pre-wrap">${resume.experienceAchievements}</p>
-                        </div>
-                        ` : ''}
-
-                        <!-- Education -->
-                        ${resume.education ? `
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 border-b-2 border-blue-600 pb-2 mb-3">EDUCATION</h2>
-                            <p class="text-slate-700 text-sm">${resume.education}</p>
-                        </div>
-                        ` : ''}
-
-                        <!-- Projects -->
-                        ${resume.projects ? `
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 border-b-2 border-blue-600 pb-2 mb-3">KEY PROJECTS</h2>
-                            <p class="text-slate-700 text-sm whitespace-pre-wrap">${resume.projects}</p>
-                        </div>
-                        ` : ''}
-
-                        <!-- Certifications -->
-                        ${resume.certifications ? `
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 border-b-2 border-blue-600 pb-2 mb-3">CERTIFICATIONS</h2>
-                            <p class="text-slate-700 text-sm">${resume.certifications}</p>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-
-            container.innerHTML = html;
-        }
-
-        function downloadResumePDF() {
-            const element = document.getElementById('resumeContainer');
-            const opt = {
-                margin: 10,
-                filename: `${appState.fullName || 'Resume'}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-            };
-            html2pdf().set(opt).from(element).save();
-            showBannerResume('Resume downloaded as PDF!', 'success', 'notifyBannerResume');
-        }
-
-        function shareResume() {
-            document.getElementById('shareModal').classList.remove('hidden');
-            document.getElementById('shareLink').value = `https://raiot.app/resume/${appState.shareToken}`;
-        }
-
-        function closeShareModal() {
-            document.getElementById('shareModal').classList.add('hidden');
-        }
-
-        function copyToClipboard() {
-            const link = document.getElementById('shareLink');
-            link.select();
-            document.execCommand('copy');
-            showBannerResume('Share link copied to clipboard!', 'success', 'notifyBannerResume');
-        }
-
-        function emailResume() {
-            const email = document.getElementById('shareEmail').value;
-            if (!email) {
-                showBannerResume('Please enter an email address', 'warning', 'notifyBannerResume');
-                return;
-            }
-            showBannerResume(`Resume share link sent to ${email}!`, 'success', 'notifyBannerResume');
-            setTimeout(() => closeShareModal(), 2000);
-        }
-
-        function continueToJobMatching() {
-            document.getElementById('resumeDisplayPage').classList.add('hidden');
-            document.getElementById('dashboardPage').classList.remove('hidden');
-            loadAndDisplayJobs();
-        }
-
-        function viewMyResume() {
-            document.getElementById('dashboardPage').classList.add('hidden');
-            document.getElementById('resumeDisplayPage').classList.remove('hidden');
-        }
-
-        // ============ JOB MATCHING FUNCTIONS ============
-        function loadAndDisplayJobs() {
-            appState.interested = [];
-            switchTab('jobs');
-            
-            // Jobs are already populated in appState.jobs from /upload endpoint
-            if (appState.jobs.length === 0) {
-                appState.jobs = fallbackJobs;
-            }
-            
-            renderJobs();
-            renderInterested();
-        }
-
-        function renderJobs() {
-            const container = document.getElementById('jobsContent');
-            container.innerHTML = appState.jobs.map((job) => `
-                <div class="bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-blue-300 transition overflow-hidden">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4 gap-4">
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-900">${job.title}</h3>
-                                <p class="text-slate-600 font-medium">${job.company}</p>
-                                <p class="text-xs text-slate-500 mt-1">Source: ${job.source || 'Integrated Feed'}</p>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-emerald-600">${job.matchScore || 80}%</div>
-                                <p class="text-xs text-slate-500">Match</p>
-                            </div>
-                        </div>
-                        <p class="text-sm text-slate-600 mb-4">${job.description || ''}</p>
-                        <div class="flex items-center justify-between text-sm text-slate-600 mb-6 pb-4 border-b border-slate-200">
-                            <span>${job.location || 'Remote'}</span>
-                            <span>${job.salary || 'Compensation TBD'}</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <a href="${job.url || '#'}" target="_blank" onclick="applyJob(${job.id})" class="flex-1 text-center px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700">Apply Now</a>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderInterested() {
-            const tbody = document.getElementById('interestedTable');
-            if (!appState.interested.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-slate-600">No applications yet. Apply to jobs above!</td></tr>';
-                return;
-            }
-            tbody.innerHTML = appState.interested.map((job) => `
-                <tr class="border-b border-slate-200 hover:bg-slate-50">
-                    <td class="px-6 py-4 font-semibold text-slate-900">${job.title}</td>
-                    <td class="px-6 py-4 text-slate-600">${job.company}</td>
-                    <td class="px-6 py-4">${renderStatusChip(job.status)}</td>
-                    <td class="px-6 py-4 text-right">
-                        ${job.status === 'Selected'
-                            ? '<span class="text-emerald-700 font-semibold text-sm">Notified ✓</span>'
-                            : `<button onclick="markSelected(${job.id})" class="text-blue-600 hover:underline font-semibold text-sm">Mark Selected</button>`}
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function renderStatusChip(status) {
-            if (status === 'Selected') return '<span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">Selected ✓</span>';
-            return '<span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Applied</span>';
-        }
-
-        async function applyJob(jobId) {
-            const job = appState.jobs.find((j) => j.id === jobId);
-            if (job && !appState.interested.find((j) => j.id === jobId)) {
-                // Tracking is handled locally since backend endpoint is removed
-                appState.interested.unshift({ ...job, status: 'Applied' });
-                renderInterested();
-                switchTab('interested');
-                showBannerResume(`Application tracked for ${job.title} at ${job.company}!`, 'success', 'notifyBannerDash');
-            }
-        }
-
-        async function markSelected(jobId) {
-            const selectedJob = appState.interested.find((j) => j.id === jobId);
-            if (!selectedJob) return;
-
-            selectedJob.status = 'Selected';
-            renderInterested();
-
-            const results = await notifySelection(selectedJob);
-            if (results.telegram && results.email) {
-                showBannerResume('Congrats! Selection notification sent via Telegram & email.', 'success', 'notifyBannerDash');
-            } else {
-                showBannerResume('Selection marked. Configure Telegram & email for notifications.', 'warning', 'notifyBannerDash');
-            }
-        }
-
-        async function notifySelection(job) {
-            const payload = {
-                event: 'job_application_selected',
-                fullName: appState.fullName,
-                email: appState.registeredEmail,
-                telegramId: appState.telegramId,
-                job
-            };
-
-            const telegram = await sendTelegram(payload);
-            const email = await sendEmail(payload);
-            return { telegram, email };
-        }
-
-        async function sendTelegram(payload) {
-            if (!payload.telegramId || !INTEGRATION_CONFIG.TELEGRAM_BOT_TOKEN) return false;
-            const text = `🎉 Congratulations! ${payload.job.title} at ${payload.job.company} - Selected!
-
-Location: ${payload.job.location}
-Salary: ${payload.job.salary}`;
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${INTEGRATION_CONFIG.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: payload.telegramId, text })
-                });
-                return res.ok;
-            } catch { return false; }
-        }
-
-        async function sendEmail(payload) {
-            if (!payload.email || !INTEGRATION_CONFIG.EMAIL_NOTIFY_API) return false;
-            try {
-                const res = await fetch(INTEGRATION_CONFIG.EMAIL_NOTIFY_API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                return res.ok;
-            } catch { return false; }
-        }
-
-        function switchTab(tab) {
-            ['jobs', 'interested'].forEach((name) => {
-                document.getElementById(`${name}Tab`).classList.toggle('border-blue-600', tab === name);
-                document.getElementById(`${name}Tab`).classList.toggle('text-blue-600', tab === name);
-                document.getElementById(`${name}Tab`).classList.toggle('border-transparent', tab !== name);
-                document.getElementById(`${name}Tab`).classList.toggle('text-slate-600', tab !== name);
-            });
-            document.getElementById('jobsContent').classList.toggle('hidden', tab !== 'jobs');
-            document.getElementById('interestedContent').classList.toggle('hidden', tab !== 'interested');
-        }
-
-        function showBannerResume(message, type, bannerId = 'notifyBanner') {
-            const banner = document.getElementById(bannerId);
-            const styles = {
-                success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-                warning: 'bg-amber-50 border-amber-200 text-amber-800',
-                error: 'bg-red-50 border-red-200 text-red-800',
-                info: 'bg-blue-50 border-blue-200 text-blue-800'
-            };
-            banner.className = `mb-6 px-4 py-3 rounded-lg border text-sm font-medium ${styles[type] || styles.info}`;
-            banner.textContent = message;
-            banner.classList.remove('hidden');
-        }
-
-        function logout() {
-            document.getElementById('landingPage').classList.remove('hidden');
-            document.getElementById('resumeEntryPage').classList.add('hidden');
-            document.getElementById('resumeBuilderPage').classList.add('hidden');
-            document.getElementById('resumeDisplayPage').classList.add('hidden');
-            document.getElementById('dashboardPage').classList.add('hidden');
-            appState.shareToken = Math.random().toString(36).substr(2, 9);
-        }
-
-        // Event listeners
-        document.getElementById('authForm').addEventListener('submit', handleAuthSubmit);
-        document.getElementById('authToggleBtn').addEventListener('click', function() {
-            toggleAuthMode(isSignupMode ? 'login' : 'signup');
-        });
-        document.getElementById('resumeBuilderForm').addEventListener('submit', handleResumeBuilderSubmit);
-    </script>
+    <script src="/static/script.js"></script>
 </body>
 </html>

@@ -74,7 +74,8 @@ def upload_file():
             company=job.get('company', 'Various Companies'),
             url=job.get('url', '#'),
             source=job.get('name', 'Web Scraper'),
-            job_type=job_type
+            job_type=job_type,
+            relevance_score=job.get('relevance_score', 0)
         )
         db.session.add(new_match)
     db.session.commit()
@@ -92,6 +93,33 @@ def upload_file():
         "jobs": jobs,
         "chart_url": "/static/trend_chart.png",
         "resume_url": f"/uploads/{file.filename}"
+    })
+
+@app.route('/fetch_jobs', methods=['POST'])
+def fetch_jobs():
+    """Handles fetching jobs based on manually entered skills."""
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    skills_str = data.get('skills', '')
+    level = data.get('level', 'Experienced')
+    job_type = data.get('job_type', 'Full-time')
+
+    # Parse skills
+    skills = [s.strip() for s in skills_str.split(',')] if skills_str else []
+    skills = [s for s in skills if s] # Remove empty strings
+
+    # Build Search Links using the Scraper
+    jobs = get_dynamic_job_links(skills, level, job_type)
+
+    # Generate Visualization
+    chart_path = generate_chart(skills) if skills else None
+
+    return jsonify({
+        "skills": skills,
+        "jobs": jobs,
+        "chart_url": "/static/trend_chart.png" if chart_path else None
     })
 
 if __name__ == '__main__':
