@@ -12,7 +12,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { PageTransition } from "@/components/ui/page-transition";
 import { useAppState } from "@/components/providers/app-state-provider";
 
-const types: JobType[] = ["Full Time", "Part Time", "Remote", "Internship"];
+const types: JobType[] = ["Full Time", "Part Time", "Remote", "Internship", "Freelancing"];
 
 const filterSchema = z.object({
   region: z.enum(["India", "International"]),
@@ -37,6 +37,14 @@ type FilterValues = {
   skillsInput: string;
 };
 
+const extractRole = (title: string) => {
+  return title
+    .replace(/\s*-\s*Search\s+on\s+.*$/i, "")
+    .replace(/\s*Jobs?\s+on\s+.*$/i, "")
+    .replace(/\s*-\s*(LinkedIn|Naukri|Internshala|Glassdoor|Monster|Wellfound|Dice).*$/i, "")
+    .trim();
+};
+
 export default function MyJobsPage() {
   const { jobs, fetchJobs } = useAppState();
   const [skills, setSkills] = useState<string[]>([]);
@@ -45,6 +53,19 @@ export default function MyJobsPage() {
   const [uploadStatus, setUploadStatus] = useState<{ success: boolean; message: string; userId?: number } | null>(null);
   const [showDoneButton, setShowDoneButton] = useState(false);
   const [scrapingStarted, setScrapingStarted] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>("All");
+
+  const uniqueRoles = useMemo(() => {
+    const roleMap = new Map<string, string>();
+    jobs.forEach((job) => {
+      const role = extractRole(job.title);
+      const lower = role.toLowerCase();
+      if (!roleMap.has(lower) && lower.length > 0) {
+        roleMap.set(lower, role);
+      }
+    });
+    return Array.from(roleMap.values());
+  }, [jobs]);
 
   const {
     register,
@@ -97,7 +118,7 @@ export default function MyJobsPage() {
       const formData = new FormData();
       formData.append('resume', file);
       formData.append('user_id', userId);
-      formData.append('job_type', 'Full-time');
+      formData.append('job_type', selectedTypes.length > 0 ? selectedTypes[0] : 'Full Time');
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/upload`, {
         method: 'POST',
@@ -157,7 +178,7 @@ export default function MyJobsPage() {
       const startRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/start-scraping`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: uploadStatus.userId, job_type: 'Full-time' })
+        body: JSON.stringify({ user_id: uploadStatus.userId, job_type: selectedTypes.length > 0 ? selectedTypes[0] : 'Full Time' })
       });
       
       if (!startRes.ok) {
@@ -238,7 +259,9 @@ export default function MyJobsPage() {
           !selectedTypes.length || selectedTypes.some((selected) => 
             job.type.some(t => t.replace('-', ' ').toLowerCase() === selected.toLowerCase())
           );
-        return byRegion && byLocation && byType;
+        const role = extractRole(job.title);
+        const byRole = selectedRole === "All" || role.toLowerCase() === selectedRole.toLowerCase();
+        return byRegion && byLocation && byType && byRole;
       })
       .map((job) => {
         // Only score by skills if user has submitted the filter form
@@ -250,7 +273,7 @@ export default function MyJobsPage() {
       .sort((a, b) => b.score - a.score);
 
     return scored.map((item) => item.job);
-  }, [region, selectedTypes, stateOrContinent, skills, jobs]);
+  }, [region, selectedTypes, stateOrContinent, skills, jobs, selectedRole]);
 
   return (
     <PageTransition>
@@ -413,6 +436,37 @@ export default function MyJobsPage() {
             </button>
           </form>
         </GlassCard>
+
+        {/* Job Roles Filter (Shows after scraping / when jobs exist) */}
+        {jobs.length > 0 && (
+          <div className="mb-2 mt-4 overflow-x-auto pb-2">
+            <div className="flex w-max gap-2 border-b border-slate-800 pb-2">
+              <button
+                onClick={() => setSelectedRole("All")}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  selectedRole === "All"
+                    ? "border-b-2 border-cyan-400 text-cyan-400"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                All Roles
+              </button>
+              {uniqueRoles.map((role) => (
+                <button
+                  key={role}
+                  onClick={() => setSelectedRole(role)}
+                  className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
+                    selectedRole === role
+                      ? "border-b-2 border-cyan-400 text-cyan-400"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {role}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           {filteredJobs.length > 0 ? (

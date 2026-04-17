@@ -1,4 +1,4 @@
-export type JobType = "Full Time" | "Part Time" | "Remote" | "Internship";
+export type JobType = "Full Time" | "Part Time" | "Remote" | "Internship" | "Freelancing";
 
 export type JobLocationMode = "India" | "International";
 
@@ -8,7 +8,7 @@ export type Job = {
   company: string;
   salary: string;
   location: string;
-  source: "LinkedIn" | "Naukri" | "Indeed" | "Wellfound";
+  source: string; // Changed to string to support many platforms (Upwork, Fiverr, Unstop, etc.)
   sourceUrl: string;
   skills: string[];
   type: JobType[];

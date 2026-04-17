@@ -9,20 +9,16 @@ import random
 # Job type to site mapping - defines which sites to scrape for each job type
 JOB_TYPE_SITES = {
     "Full-time": [
-        "Naukri", "LinkedIn", "Indeed", "Monster", "Glassdoor",
-        "Wellfound", "Dice", "WeWorkRemotely"
+        "Naukri", "LinkedIn", "Indeed", "Monster", "FlexJob"
     ],
     "Part-time": [
-        "Naukri", "Indeed", "Apna", "Glassdoor", "Snagajob",
-        "LinkedIn", "Wellfound"
+        "Naukri", "Indeed", "Apna", "Glassdoor", "Snagajob"
     ],
     "Freelance": [
-        "Upwork", "Freelancer", "PeoplePerHour", "Toptal",
-        "Fiverr", "WeWorkRemotely", "LinkedIn"
+        "Upwork", "Fiverr", "Freelancer", "PeoplePerHour", "Toptal"
     ],
     "Internship": [
-        "Internshala", "LinkedIn", "Indeed", "Unstop", "WayUp",
-        "Glassdoor", "Wellfound", "Naukri"
+        "Internshala", "LinkedIn", "Indeed", "Unstop", "WayUp"
     ]
 }
 
