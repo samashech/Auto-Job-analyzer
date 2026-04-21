@@ -118,7 +118,7 @@ def verify_password(password, stored_hash):
 # ============ OTP STORAGE (In-memory for simplicity) ============
 otp_store = {}  # {email: {'otp': '123456', 'expires': timestamp}}
 
-def background_scrape_job(user_id, skills, level, job_type, experience_level, location):
+def background_scrape_job(user_id, skills, level, job_type, experience_level, location, job_role=""):
     """Background thread to scrape jobs and push to SSE queue."""
     # Create app context for database operations
     with app.app_context():
@@ -128,7 +128,7 @@ def background_scrape_job(user_id, skills, level, job_type, experience_level, lo
             return
         
         print(f"🚀 Starting background scrape for user {user_id}")
-        print(f"   Skills: {len(skills)}, Level: {level}, Type: {job_type}")
+        print(f"   Role: {job_role}, Skills: {len(skills)}, Level: {level}, Type: {job_type}")
         
         state['scraping'] = True
         state['total_skills'] = len(skills)
@@ -137,7 +137,7 @@ def background_scrape_job(user_id, skills, level, job_type, experience_level, lo
         try:
             # Scrape jobs - this will take time
             print(f"🔍 Calling scraper.get_dynamic_job_links()...")
-            jobs = get_dynamic_job_links(skills, level, job_type, experience_level, location)
+            jobs = get_dynamic_job_links(skills, level, job_type, experience_level, location, job_role)
             print(f"✅ Scraper returned {len(jobs)} jobs")
 
             # Check if scraping was stopped while we were working
@@ -610,6 +610,7 @@ def upload_file():
         user.phone = user_profile.get('phone', '')
         user.level = user_profile['level']
         user.skills = ", ".join(user_profile['skills'])
+        user.job_role = user_profile.get('job_role', '')
         print(f"🔄 Updated existing user: {email}")
     else:
         # Create new user
@@ -619,6 +620,7 @@ def upload_file():
             phone=user_profile.get('phone', ''),
             level=user_profile['level'],
             skills=", ".join(user_profile['skills']),
+            job_role=user_profile.get('job_role', ''),
             password_hash=hash_password("resume-upload-user")
         )
         db.session.add(user)
@@ -699,7 +701,7 @@ def start_scraping():
         target=background_scrape_job,
         args=(user.id, skills_list, user.level, 
               job_type, experience_level if experience_level else user.level,
-              preferred_location),
+              preferred_location, user.job_role),
         daemon=True
     )
     scrape_thread.start()

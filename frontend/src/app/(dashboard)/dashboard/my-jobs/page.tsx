@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Filter, Upload, FileText, Loader2, CheckCircle, ArrowRight } from "lucide-react";
+import { Filter, Upload, FileText, Loader2, CheckCircle, ArrowRight, Star } from "lucide-react";
 import { continents, indianStates } from "@/lib/jobs-data";
 import { JobType } from "@/lib/types";
 import { JobCard } from "@/components/dashboard/job-card";
@@ -468,11 +468,34 @@ export default function MyJobsPage() {
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-8">
           {filteredJobs.length > 0 ? (
-            filteredJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
-            ))
+            <>
+              {/* Best Match Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                  <h2 className="text-xl font-semibold text-yellow-400">Best Match Found</h2>
+                </div>
+                <div className="relative rounded-2xl p-[2px] bg-gradient-to-r from-yellow-400 via-cyan-400 to-yellow-400 animate-pulse-slow shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+                  <div className="rounded-[14px] bg-slate-950">
+                    <JobCard key={`best-${filteredJobs[0].id}`} job={filteredJobs[0]} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Other Jobs Grid */}
+              {filteredJobs.length > 1 && (
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-slate-200">Other Opportunities</h2>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {filteredJobs.slice(1).map((job) => (
+                      <JobCard key={job.id} job={job} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="col-span-full text-center py-12">
               <p className="text-lg text-slate-400">No jobs found. Upload your resume or apply filters to discover opportunities.</p>

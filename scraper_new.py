@@ -566,14 +566,15 @@ def calculate_relevance_score(job_title, job_description, skills):
     are mentioned in the job title and description.
     STRICT: Only scores high if actual technical skills are found.
     """
-    if not skills:
-        return 0
-
     text_to_check = f"{job_title} {job_description}".lower()
+    
+    if not skills:
+        return 10  # Base score if no specific skills
+
     skill_lower = [s.lower() for s in skills if len(s) > 2]
 
     if not skill_lower:
-        return 0
+        return 10
 
     matches = 0
     matched_skills = []
@@ -605,9 +606,9 @@ def calculate_relevance_score(job_title, job_description, skills):
     # Final score: base percentage + title bonus, capped at 100
     score = min(100, int((match_percentage * 80) + title_bonus))
     
-    # Return 0 if no meaningful match found
+    # Return a low non-zero score if there is any text, to avoid filtering out all jobs
     if matches == 0:
-        return 0
+        return 5
     
     return score
 
@@ -643,7 +644,7 @@ def _create_fallback_job(site_name, job_role, search_url, relevance_score=40, de
     }
 
 
-def scrape_linkedin(page, query, skills, experience_level="", location="", page_num=1):
+def scrape_linkedin(query, skills, experience_level="", location="", page_num=1):
     """Scrape actual job listings from LinkedIn."""
     results = []
     try:
@@ -662,17 +663,20 @@ def scrape_linkedin(page, query, skills, experience_level="", location="", page_
         
         search_query = ' '.join(search_parts)
         encoded_query = urllib.parse.quote(search_query)
-        url = f"https://www.linkedin.com/jobs/search/?keywords={encoded_query}" + (f"&start={(page_num-1)*25}" if page_num > 1 else "")
+        url = f"https://www.linkedin.com/jobs/search/?keywords={encoded_query}"
         print(f"    [LinkedIn] Mapped '{query}' -> '{search_query}', navigating to: {url}")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)  # Wait for JS to render
+        
+          # Wait for JS to render
 
         # Check if blocked
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [LinkedIn] Blocked by CAPTCHA, returning search link")
             return [_create_fallback_job("LinkedIn", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         
         # Try multiple selectors for LinkedIn's dynamic structure
         job_cards = soup.find_all('div', class_=re.compile(r'base-search-card'))
@@ -719,7 +723,7 @@ def scrape_linkedin(page, query, skills, experience_level="", location="", page_
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Job matching: {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "LinkedIn",
                         "title": title,
@@ -747,29 +751,31 @@ def scrape_linkedin(page, query, skills, experience_level="", location="", page_
     return results
 
 
-def scrape_indeed(page, query, skills, experience_level="", location="", page_num=1):
+def scrape_indeed(query, skills, experience_level="", location="", page_num=1):
     """Scrape actual job listings from Indeed."""
     results = []
     try:
         # Map skill to common job title
         job_role = get_indeed_search_role(query)
-
+        
         # Build query with location
         search_query = job_role
         if location:
             search_query += f" {location}"
-
+        
         encoded_query = urllib.parse.quote(search_query)
-        url = f"https://in.indeed.com/jobs?q={encoded_query}" + (f"&start={(page_num-1)*10}" if page_num > 1 else "")
-        print(f"    [Indeed] Mapped '{query}' -> '{search_query}', navigating to: {url}")        
+        url = f"https://in.indeed.com/jobs?q={encoded_query}"
+        print(f"    [Indeed] Mapped '{query}' -> '{search_query}', navigating to: {url}")
+        
         try:
-            page.goto(url, wait_until="domcontentloaded", timeout=25000)
-            page.wait_for_timeout(1500)
+            pass
         except Exception as nav_e:
             print(f"    [Indeed] Navigation failed: {str(nav_e)[:100]}")
             return [_create_fallback_job("Indeed", job_role, url, 30)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         
         # Indeed uses dynamic IDs, use flexible selectors
         job_cards = soup.find_all('div', id=re.compile(r'^p_'))
@@ -805,7 +811,7 @@ def scrape_indeed(page, query, skills, experience_level="", location="", page_nu
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Job matching: {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Indeed",
                         "title": title,
@@ -825,7 +831,7 @@ def scrape_indeed(page, query, skills, experience_level="", location="", page_nu
     return results
 
 
-def scrape_naukri(page, query, skills, experience_level="", location="", page_num=1):
+def scrape_naukri(query, skills, experience_level="", location="", page_num=1):
     """
     Scrape actual job listings from Naukri.
     NOTE: Naukri has strong anti-bot protection, so we use a hybrid approach:
@@ -839,12 +845,12 @@ def scrape_naukri(page, query, skills, experience_level="", location="", page_nu
         dash_query = job_role.replace(' ', '-')
         
         # Try the new Naukri URL format that's less likely to be blocked
-        url = f"https://www.naukri.com/naukri/search/results?keyword={urllib.parse.quote(job_role)}" + (f"&pageNo={page_num}" if page_num > 1 else "")
+        url = f"https://www.naukri.com/naukri/search/results?keyword={urllib.parse.quote(job_role)}"
         print(f"    [Naukri] Mapped '{query}' -> '{job_role}', navigating to: {url}")
         
         # Try to access with longer wait
-        page.goto(url, wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(4000)  # Longer wait for JS
+        
+          # Longer wait for JS
         
         # Check if we got blocked
         if "Access Denied" in page.content() or "nucaptcha" in page.content().lower():
@@ -862,7 +868,9 @@ def scrape_naukri(page, query, skills, experience_level="", location="", page_nu
             })
             return results
         
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         
         # Naukri uses dynamic class names - try multiple selectors
         job_cards = soup.find_all('article', class_=re.compile(r'jobTuple|tuple'))
@@ -898,7 +906,7 @@ def scrape_naukri(page, query, skills, experience_level="", location="", page_nu
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Job matching: {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Naukri",
                         "title": title,
@@ -945,7 +953,7 @@ def scrape_naukri(page, query, skills, experience_level="", location="", page_nu
     return results
 
 
-def scrape_timesjobs(page, query, skills, experience_level="", location=""):
+def scrape_timesjobs(query, skills, experience_level="", location=""):
     """Scrape actual job listings from TimesJobs."""
     results = []
     try:
@@ -954,15 +962,18 @@ def scrape_timesjobs(page, query, skills, experience_level="", location=""):
         timesjobs_query = urllib.parse.quote(job_role)
         timesjobs_url = f"https://www.timesjobs.com/candidate/job-search.html?searchType=personalizedSearch&from=submit&txtKeywords={timesjobs_query}&txtLocation="
         print(f"    [TimesJobs] Mapped '{query}' -> '{job_role}', navigating to: {timesjobs_url}")
-        page.goto(timesjobs_url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
         
         # Check if blocked
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [TimesJobs] Blocked, returning search link")
             return [_create_fallback_job("TimesJobs", job_role, timesjobs_url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         cards = soup.find_all("li", class_="clearfix job-bx wht-shd-bx")
         
         if not cards:
@@ -992,7 +1003,7 @@ def scrape_timesjobs(page, query, skills, experience_level="", location=""):
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Job matching: {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "TimesJobs",
                         "title": title,
@@ -1021,7 +1032,7 @@ def scrape_timesjobs(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_internshala(page, query, skills, job_type="Full-time", experience_level=""):
+def scrape_internshala(query, skills, job_type="Full-time", experience_level=""):
     """Scrape actual job listings from Internshala."""
     results = []
     try:
@@ -1031,15 +1042,18 @@ def scrape_internshala(page, query, skills, job_type="Full-time", experience_lev
         base_path = "internships" if job_type == "Internship" else "jobs"
         scrape_url = f"https://internshala.com/{base_path}/keywords-{internshala_query}/"
         print(f"    [Internshala] Mapped '{query}' -> '{intern_role}', navigating to: {scrape_url}")
-        page.goto(scrape_url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
         
         # Check if blocked
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [Internshala] Blocked by CAPTCHA, returning search link")
             return [_create_fallback_job("Internshala", intern_role, scrape_url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         cards = soup.find_all("div", class_="internship_meta")
         print(f"    [Internshala] Found {len(cards)} jobs")
 
@@ -1059,7 +1073,7 @@ def scrape_internshala(page, query, skills, job_type="Full-time", experience_lev
                 description = desc_elem.text.strip()[:300] if desc_elem else f"{job_type} opportunity for {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Internshala",
                         "title": title,
@@ -1092,7 +1106,7 @@ def scrape_internshala(page, query, skills, job_type="Full-time", experience_lev
     return results
 
 
-def scrape_glassdoor(page, query, skills, experience_level="", location="", page_num=1):
+def scrape_glassdoor(query, skills, experience_level="", location="", page_num=1):
     """
     Scrape actual job listings from Glassdoor.
     Tries multiple expanded job role queries if initial search returns no results.
@@ -1114,17 +1128,20 @@ def scrape_glassdoor(page, query, skills, experience_level="", location="", page
                 full_query += f" {location}"
                 
             encoded_query = urllib.parse.quote(full_query)
-            url = f"https://www.glassdoor.com/Job/jobs.htm?sc.keyword={encoded_query}" + (f"&p={page_num}" if page_num > 1 else "")
+            url = f"https://www.glassdoor.com/Job/jobs.htm?sc.keyword={encoded_query}"
             print(f"    [Glassdoor] Searching: '{full_query}'")
-            page.goto(url, wait_until="domcontentloaded", timeout=25000)
-            page.wait_for_timeout(2000)
+            
+            
             
             # Check if blocked
-            if _is_blocked(page.content()):
+            html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
                 print(f"    [Glassdoor] Blocked by CAPTCHA, returning search link")
                 return [_create_fallback_job("Glassdoor", search_query, url, 45)]
 
-            soup = BeautifulSoup(page.content(), "html.parser")
+            if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
             job_cards = soup.find_all('div', class_=re.compile(r'jobListing'))
 
             if not job_cards:
@@ -1172,7 +1189,7 @@ def scrape_glassdoor(page, query, skills, experience_level="", location="", page
             
             if not results:
                 print(f"    [Glassdoor] No jobs for '{search_query}', trying next query...")
-                page.wait_for_timeout(1000)  # Small delay before next query
+                  # Small delay before next query
 
         print(f"    [Glassdoor] Extracted {len(results)} relevant jobs for '{query}'")
         
@@ -1190,7 +1207,7 @@ def scrape_glassdoor(page, query, skills, experience_level="", location="", page
     return results
 
 
-def scrape_monster(page, query, skills, experience_level="", location=""):
+def scrape_monster(query, skills, experience_level="", location=""):
     """
     Scrape actual job listings from Monster (foundit.in).
     Maps skills to traditional corporate job titles for better results.
@@ -1209,15 +1226,18 @@ def scrape_monster(page, query, skills, experience_level="", location=""):
         encoded_query = urllib.parse.quote(search_query)
         url = f"https://www.foundit.in/srp/results?query={encoded_query}"
         print(f"    [Monster] Mapped '{query}' -> '{search_query}', navigating to: {url}")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
         
         # Check if blocked
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [Monster] Blocked by anti-bot, returning search link")
             return [_create_fallback_job("Monster", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'SearchJob'))
 
         if not job_cards:
@@ -1246,7 +1266,7 @@ def scrape_monster(page, query, skills, experience_level="", location=""):
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Job matching: {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Monster",
                         "title": title,
@@ -1275,7 +1295,7 @@ def scrape_monster(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_wellfound(page, query, skills, experience_level=""):
+def scrape_wellfound(query, skills, experience_level=""):
     """
     Scrape actual job listings from Wellfound (AngelList).
     Maps technical skills to proper startup job roles for better results.
@@ -1288,15 +1308,18 @@ def scrape_wellfound(page, query, skills, experience_level=""):
         dash_query = job_role.replace(' ', '-').lower()
         url = f"https://wellfound.com/role/{dash_query}"
         print(f"    [Wellfound] Mapped '{query}' -> '{job_role}', navigating to: {url}")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
         
         # Check if blocked
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [Wellfound] Blocked by CAPTCHA, returning search link")
             return [_create_fallback_job("Wellfound", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'styles__JobCard'))
 
         if not job_cards:
@@ -1322,7 +1345,7 @@ def scrape_wellfound(page, query, skills, experience_level=""):
                 description = f"Startup opportunity for {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Wellfound",
                         "title": title,
@@ -1351,7 +1374,7 @@ def scrape_wellfound(page, query, skills, experience_level=""):
     return results
 
 
-def scrape_upwork(page, query, skills):
+def scrape_upwork(query, skills):
     """Scrape actual job listings from Upwork."""
     results = []
     try:
@@ -1360,15 +1383,18 @@ def scrape_upwork(page, query, skills):
         encoded_query = urllib.parse.quote(job_role)
         url = f"https://www.upwork.com/nx/search/jobs/?q={encoded_query}"
         print(f"    [Upwork] Mapped '{query}' -> '{job_role}', navigating to: {url}")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
         
         # Check if blocked
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [Upwork] Blocked, returning search link")
             return [_create_fallback_job("Upwork", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'JobTile'))
         
         if not job_cards:
@@ -1395,7 +1421,7 @@ def scrape_upwork(page, query, skills):
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Freelance opportunity for {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Upwork",
                         "title": title,
@@ -1424,7 +1450,7 @@ def scrape_upwork(page, query, skills):
     return results
 
 
-def scrape_dice(page, query, skills, location=""):
+def scrape_dice(query, skills, location=""):
     """Scrape actual job listings from Dice.com (Tech jobs)."""
     results = []
     try:
@@ -1439,15 +1465,18 @@ def scrape_dice(page, query, skills, location=""):
         encoded_query = urllib.parse.quote(search_query)
         url = f"https://www.dice.com/jobs?q={encoded_query}"
         print(f"    [Dice] Mapped '{query}' -> '{search_query}', navigating to: {url}")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
         
         # Check if blocked
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [Dice] Blocked, returning search link")
             return [_create_fallback_job("Dice", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         
         # Dice uses card-based layout
         job_cards = soup.find_all('div', class_=re.compile(r'card-content'))
@@ -1482,7 +1511,7 @@ def scrape_dice(page, query, skills, location=""):
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Tech job matching: {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Dice",
                         "title": title,
@@ -1511,7 +1540,7 @@ def scrape_dice(page, query, skills, location=""):
     return results
 
 
-def scrape_weworkremotely(page, query, skills):
+def scrape_weworkremotely(query, skills):
     """Scrape actual job listings from WeWorkRemotely (Remote jobs)."""
     results = []
     try:
@@ -1520,10 +1549,12 @@ def scrape_weworkremotely(page, query, skills):
         dash_query = job_role.replace(' ', '-').lower()
         url = f"https://weworkremotely.com/remote-jobs/search?term={dash_query}"
         print(f"    [WeWorkRemotely] Mapped '{query}' -> '{job_role}', navigating to: {url}")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         
         # WeWorkRemotely uses list-based layout
         job_cards = soup.find_all('li', class_=re.compile(r'job'))
@@ -1554,7 +1585,7 @@ def scrape_weworkremotely(page, query, skills):
                 description = f"Remote opportunity for {query}"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "WeWorkRemotely",
                         "title": title,
@@ -1576,7 +1607,7 @@ def scrape_weworkremotely(page, query, skills):
 
 # ============ NEW SCRAPERS FOR JOB-TYPE SPECIFIC SITES ============
 
-def scrape_flexjobs(page, query, skills, experience_level="", location=""):
+def scrape_flexjobs(query, skills, experience_level="", location=""):
     """Scrape FlexJobs for part-time/remote opportunities."""
     results = []
     try:
@@ -1589,14 +1620,17 @@ def scrape_flexjobs(page, query, skills, experience_level="", location=""):
         url = f"https://www.flexjobs.com/search?search={encoded_query}&schedule=Part-Time"
 
         print(f"    [FlexJobs] Searching for '{search_query}'")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [FlexJobs] Blocked, returning search link")
             return [_create_fallback_job("FlexJobs", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'job|listing|search-result', re.I))
 
         if not job_cards:
@@ -1619,7 +1653,7 @@ def scrape_flexjobs(page, query, skills, experience_level="", location=""):
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Part-time {query} opportunity"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "FlexJobs",
                         "title": title,
@@ -1643,7 +1677,7 @@ def scrape_flexjobs(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_apna(page, query, skills, experience_level="", location=""):
+def scrape_apna(query, skills, experience_level="", location=""):
     """Scrape Apna.co for part-time/local jobs."""
     results = []
     try:
@@ -1655,14 +1689,17 @@ def scrape_apna(page, query, skills, experience_level="", location=""):
             url += f"?city={location_query}"
 
         print(f"    [Apna] Searching for '{job_role}'")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             print(f"    [Apna] Blocked, returning search link")
             return [_create_fallback_job("Apna", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'job|card|listing', re.I))
 
         for card in job_cards[:10]:
@@ -1680,7 +1717,7 @@ def scrape_apna(page, query, skills, experience_level="", location=""):
 
                 description = f"{query} opportunity on Apna"
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Apna",
                         "title": title,
@@ -1704,7 +1741,7 @@ def scrape_apna(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_snagajob(page, query, skills, experience_level="", location=""):
+def scrape_snagajob(query, skills, experience_level="", location=""):
     """Scrape Snagajob for part-time/hourly work."""
     results = []
     try:
@@ -1716,13 +1753,16 @@ def scrape_snagajob(page, query, skills, experience_level="", location=""):
             url += f"&l={location_param}"
 
         print(f"    [Snagajob] Searching for '{job_role} part time'")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             return [_create_fallback_job("Snagajob", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'job|card|result', re.I))
 
         for card in job_cards[:10]:
@@ -1740,7 +1780,7 @@ def scrape_snagajob(page, query, skills, experience_level="", location=""):
 
                 description = f"Part-time {query} position"
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Snagajob",
                         "title": title,
@@ -1764,7 +1804,7 @@ def scrape_snagajob(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_unstop(page, query, skills, job_type="", experience_level=""):
+def scrape_unstop(query, skills, job_type="", experience_level=""):
     """Scrape Unstop for internships and early career roles."""
     results = []
     try:
@@ -1773,13 +1813,16 @@ def scrape_unstop(page, query, skills, job_type="", experience_level=""):
         url = f"https://unstop.com/internships?q={encoded_query}"
 
         print(f"    [Unstop] Searching for '{job_role}' internships")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             return [_create_fallback_job("Unstop", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'card|listing|internship', re.I))
 
         if not job_cards:
@@ -1800,7 +1843,7 @@ def scrape_unstop(page, query, skills, job_type="", experience_level=""):
 
                 description = f"Internship opportunity in {query}"
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Unstop",
                         "title": title,
@@ -1824,7 +1867,7 @@ def scrape_unstop(page, query, skills, job_type="", experience_level=""):
     return results
 
 
-def scrape_wayup(page, query, skills, job_type="", experience_level=""):
+def scrape_wayup(query, skills, job_type="", experience_level=""):
     """Scrape WayUp for internships and entry-level roles."""
     results = []
     try:
@@ -1833,13 +1876,16 @@ def scrape_wayup(page, query, skills, job_type="", experience_level=""):
         url = f"https://www.wayup.com/s/internships/{dash_query}/"
 
         print(f"    [WayUp] Searching for '{job_role}' internships")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             return [_create_fallback_job("WayUp", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'card|job|listing|result', re.I))
 
         for card in job_cards[:10]:
@@ -1857,7 +1903,7 @@ def scrape_wayup(page, query, skills, job_type="", experience_level=""):
 
                 description = f"Internship/entry-level {query} opportunity"
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "WayUp",
                         "title": title,
@@ -1881,7 +1927,7 @@ def scrape_wayup(page, query, skills, job_type="", experience_level=""):
     return results
 
 
-def scrape_freelancer(page, query, skills, experience_level="", location=""):
+def scrape_freelancer(query, skills, experience_level="", location=""):
     """Scrape Freelancer.com for freelance projects."""
     results = []
     try:
@@ -1890,13 +1936,16 @@ def scrape_freelancer(page, query, skills, experience_level="", location=""):
         url = f"https://www.freelancer.com/jobs/?keyword={encoded_query}"
 
         print(f"    [Freelancer] Searching for '{job_role}' projects")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             return [_create_fallback_job("Freelancer", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'SearchResult|job|listing', re.I))
 
         if not job_cards:
@@ -1916,7 +1965,7 @@ def scrape_freelancer(page, query, skills, experience_level="", location=""):
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Freelance {query} project"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Freelancer",
                         "title": title,
@@ -1940,7 +1989,7 @@ def scrape_freelancer(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_fiverr(page, query, skills, experience_level="", location=""):
+def scrape_fiverr(query, skills, experience_level="", location=""):
     """Scrape Fiverr for freelance gigs (search as buyer looking for gigs or as seller opportunity)."""
     results = []
     try:
@@ -1949,13 +1998,16 @@ def scrape_fiverr(page, query, skills, experience_level="", location=""):
         url = f"https://www.fiverr.com/search/gigs?query={encoded_query}"
 
         print(f"    [Fiverr] Searching for '{job_role}' gigs")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             return [_create_fallback_job("Fiverr", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         gig_cards = soup.find_all('div', class_=re.compile(r'gig|card|listing', re.I))
 
         if not gig_cards:
@@ -1976,7 +2028,7 @@ def scrape_fiverr(page, query, skills, experience_level="", location=""):
 
                 description = f"Freelance {query} service/gig opportunity"
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "Fiverr",
                         "title": title,
@@ -2000,7 +2052,7 @@ def scrape_fiverr(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_peopleperhour(page, query, skills, experience_level="", location=""):
+def scrape_peopleperhour(query, skills, experience_level="", location=""):
     """Scrape PeoplePerHour for freelance jobs."""
     results = []
     try:
@@ -2009,13 +2061,16 @@ def scrape_peopleperhour(page, query, skills, experience_level="", location=""):
         url = f"https://www.peopleperhour.com/freelance-jobs?q={encoded_query}"
 
         print(f"    [PeoplePerHour] Searching for '{job_role}'")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(2000)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             return [_create_fallback_job("PeoplePerHour", job_role, url, 45)]
 
-        soup = BeautifulSoup(page.content(), "html.parser")
+        if 'html_content' not in locals():
+            html_content = fetch_html(url, render=True, premium=True)
+        soup = BeautifulSoup(html_content, "html.parser")
         job_cards = soup.find_all('div', class_=re.compile(r'job|listing|card|hoverable', re.I))
 
         if not job_cards:
@@ -2038,7 +2093,7 @@ def scrape_peopleperhour(page, query, skills, experience_level="", location=""):
                 description = desc_elem.text.strip()[:300] if desc_elem else f"Freelance {query} opportunity"
 
                 relevance = calculate_relevance_score(title, description, skills)
-                if relevance >= 0:
+                if relevance > 0:
                     results.append({
                         "name": "PeoplePerHour",
                         "title": title,
@@ -2062,7 +2117,7 @@ def scrape_peopleperhour(page, query, skills, experience_level="", location=""):
     return results
 
 
-def scrape_toptal(page, query, skills, experience_level="", location=""):
+def scrape_toptal(query, skills, experience_level="", location=""):
     """Scrape Toptal for high-end freelance roles (or provide fallback link)."""
     results = []
     try:
@@ -2071,10 +2126,11 @@ def scrape_toptal(page, query, skills, experience_level="", location=""):
         url = f"https://www.toptal.com/{query.lower().replace(' ', '-')}"
 
         print(f"    [Toptal] Providing link for '{job_role}'")
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-        page.wait_for_timeout(1500)
+        
+        
 
-        if _is_blocked(page.content()):
+        html_content = fetch_html(url, render=True, premium=True)
+        if _is_blocked(html_content):
             return [_create_fallback_job("Toptal", job_role, url, 45)]
 
         # Toptal doesn't have a traditional job board, it's talent-matching
@@ -2131,20 +2187,16 @@ def get_dynamic_job_links(skills, level, job_type="Full-time", experience_level=
     best_jobs_overall = []
     seen_urls = set()
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=['--no-sandbox', '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled']  # Prevent crashes and help bypass bot detection
-        )
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    if True:
+        browser = None
+        context = None AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             viewport={'width': 1280, 'height': 720}
         )
-        page = context.new_page()
-        Stealth().apply_stealth_sync(page)
+        page = None
+        
 
         # Set longer timeout for slow sites
-        page.set_default_timeout(30000)  # 30 seconds
+          # 30 seconds
 
         # Iterate through EACH job role
         for role_idx, role in enumerate(roles_to_search):
@@ -2164,26 +2216,26 @@ def get_dynamic_job_links(skills, level, job_type="Full-time", experience_level=
                 for page_num in [1, 2]:
                     # Define ALL possible scrapers, passing the ROLE as the query
                     all_scrapers = {
-                        "Indeed": lambda: scrape_indeed(page, role, skills, experience_level or level, location, page_num),
-                        "LinkedIn": lambda: scrape_linkedin(page, role, skills, experience_level or level, location, page_num),
-                        "TimesJobs": lambda: scrape_timesjobs(page, role, skills, experience_level or level, location), # TimesJobs doesn't support page_num well
-                        "Naukri": lambda: scrape_naukri(page, role, skills, experience_level or level, location, page_num),
-                        "Internshala": lambda: scrape_internshala(page, role, skills, job_type, experience_level or level), # Internshala doesn't support page_num well
-                        "Glassdoor": lambda: scrape_glassdoor(page, role, skills, experience_level or level, location, page_num),
-                        "Monster": lambda: scrape_monster(page, role, skills, experience_level or level, location), # Monster doesn't support page_num well
-                        "Wellfound": lambda: scrape_wellfound(page, role, skills, experience_level or level), # Wellfound doesn't support page_num well
-                        "Upwork": lambda: scrape_upwork(page, role, skills),
-                        "Dice": lambda: scrape_dice(page, role, skills, location),
-                        "WeWorkRemotely": lambda: scrape_weworkremotely(page, role, skills),
-                        "FlexJobs": lambda: scrape_flexjobs(page, role, skills, experience_level or level, location),
-                        "Apna": lambda: scrape_apna(page, role, skills, experience_level or level, location),
-                        "Snagajob": lambda: scrape_snagajob(page, role, skills, experience_level or level, location),
-                        "Unstop": lambda: scrape_unstop(page, role, skills, job_type, experience_level or level),
-                        "WayUp": lambda: scrape_wayup(page, role, skills, job_type, experience_level or level),
-                        "Freelancer": lambda: scrape_freelancer(page, role, skills, experience_level or level, location),
-                        "Fiverr": lambda: scrape_fiverr(page, role, skills, experience_level or level, location),
-                        "PeoplePerHour": lambda: scrape_peopleperhour(page, role, skills, experience_level or level, location),
-                        "Toptal": lambda: scrape_toptal(page, role, skills, experience_level or level, location),
+                        "Indeed": lambda: scrape_indeed(role, skills, experience_level or level, location, page_num),
+                        "LinkedIn": lambda: scrape_linkedin(role, skills, experience_level or level, location, page_num),
+                        "TimesJobs": lambda: scrape_timesjobs(role, skills, experience_level or level, location), # TimesJobs doesn't support page_num well
+                        "Naukri": lambda: scrape_naukri(role, skills, experience_level or level, location, page_num),
+                        "Internshala": lambda: scrape_internshala(role, skills, job_type, experience_level or level), # Internshala doesn't support page_num well
+                        "Glassdoor": lambda: scrape_glassdoor(role, skills, experience_level or level, location, page_num),
+                        "Monster": lambda: scrape_monster(role, skills, experience_level or level, location), # Monster doesn't support page_num well
+                        "Wellfound": lambda: scrape_wellfound(role, skills, experience_level or level), # Wellfound doesn't support page_num well
+                        "Upwork": lambda: scrape_upwork(role, skills),
+                        "Dice": lambda: scrape_dice(role, skills, location),
+                        "WeWorkRemotely": lambda: scrape_weworkremotely(role, skills),
+                        "FlexJobs": lambda: scrape_flexjobs(role, skills, experience_level or level, location),
+                        "Apna": lambda: scrape_apna(role, skills, experience_level or level, location),
+                        "Snagajob": lambda: scrape_snagajob(role, skills, experience_level or level, location),
+                        "Unstop": lambda: scrape_unstop(role, skills, job_type, experience_level or level),
+                        "WayUp": lambda: scrape_wayup(role, skills, job_type, experience_level or level),
+                        "Freelancer": lambda: scrape_freelancer(role, skills, experience_level or level, location),
+                        "Fiverr": lambda: scrape_fiverr(role, skills, experience_level or level, location),
+                        "PeoplePerHour": lambda: scrape_peopleperhour(role, skills, experience_level or level, location),
+                        "Toptal": lambda: scrape_toptal(role, skills, experience_level or level, location),
                     }
 
                     if scraper_name not in all_scrapers:
@@ -2246,17 +2298,21 @@ def get_dynamic_job_links(skills, level, job_type="Full-time", experience_level=
                             
                     unique_matches = list(set(matched_skills))
                     
-                    best_job_for_site['reason'] = f"Highest relevance score ({score}) for {role} role."
-                    if unique_matches:
-                        best_job_for_site['reason'] += f" Matches skills: {', '.join(unique_matches[:5])}"
-
+                    specific_info = f"✨ BEST MATCH ON {scraper_name.upper()} ✨\n"
+                    specific_info += f"We analyzed multiple job descriptions on {scraper_name} for '{role}' and selected this as your top opportunity because it specifically requires your skills in: {', '.join(unique_matches) if unique_matches else 'the core technologies'}. "
+                    
+                    best_job_for_site['description'] = specific_info + "\n\nJob Details:\n" + desc
+                    
+                    # Add to our final list of best jobs
                     best_jobs_overall.append(best_job_for_site)
                     print(f"    ✅ Selected Best Job: {best_job_for_site['title']} at {best_job_for_site['company']} (Score: {score})")
                 else:
                     print(f"    ❌ No relevant jobs found on {scraper_name} for '{role}'.")
 
-        browser.close()
+        
 
+    # Sort final list of best jobs by relevance score
     best_jobs_overall.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+
     print(f"\n=== Total Best Jobs Found (1 per site per role): {len(best_jobs_overall)} ===")
-    return best_jobs_overall[:40]
+    return best_jobs_overall

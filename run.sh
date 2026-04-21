@@ -14,6 +14,7 @@ cleanup() {
     echo ""
     echo -e "${RED}🛑 Shutting down servers...${NC}"
     kill $NEXT_PID 2>/dev/null
+    pkill -f "python3 -u app.py" 2>/dev/null
     pkill -f "python app.py" 2>/dev/null
     pkill -f "next dev" 2>/dev/null
     echo -e "${GREEN}✅ All processes stopped${NC}"
@@ -85,4 +86,4 @@ echo -e "${CYAN}---------------------------------------------${NC}"
 echo ""
 
 # Start Flask in foreground - this will show all scraping logs
-cd "$PROJECT_ROOT" && python app.py
+cd "$PROJECT_ROOT" && python3 -u app.py
