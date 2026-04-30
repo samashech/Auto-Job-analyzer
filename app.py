@@ -119,100 +119,52 @@ def verify_password(password, stored_hash):
 otp_store = {}  # {email: {'otp': '123456', 'expires': timestamp}}
 
 def background_scrape_job(user_id, skills, level, job_type, experience_level, location, job_role=""):
-    """Background thread to scrape jobs and push to SSE queue."""
-    # Create app context for database operations
+    """Background thread to send scraping request to n8n webhook."""
     with app.app_context():
         state = scraping_state.get(user_id)
         if not state:
             print(f"⚠️ No scraping state for user {user_id}")
             return
         
-        print(f"🚀 Starting background scrape for user {user_id}")
+        print(f"🚀 Sending background scrape request to n8n for user {user_id}")
         print(f"   Role: {job_role}, Skills: {len(skills)}, Level: {level}, Type: {job_type}")
         
         state['scraping'] = True
         state['total_skills'] = len(skills)
         state['processed_skills'] = 0
         
+        payload = {
+            "user_id": user_id,
+            "skills": skills,
+            "level": level,
+            "job_type": job_type,
+            "experience_level": experience_level,
+            "location": location,
+            "job_role": job_role
+        }
+        
+        n8n_webhook_url = "http://localhost:5678/webhook-test/853c96d1-4517-402d-a08d-284c62166d58"
+        
         try:
-            # Scrape jobs - this will take time
-            print(f"🔍 Calling scraper.get_dynamic_job_links()...")
-            jobs = get_dynamic_job_links(skills, level, job_type, experience_level, location, job_role)
-            print(f"✅ Scraper returned {len(jobs)} jobs")
-
-            # Check if scraping was stopped while we were working
-            if not state.get('scraping', False):
-                print(f"🛑 Scraping was stopped for user {user_id}, discarding {len(jobs)} jobs")
-                state['finished'] = True
-                return
-
-            # Save each job to database and stream to client
-            for idx, job in enumerate(jobs):
-                # Check if job already exists for this user (deduplicate)
-                job_url = job.get('url', '#')
-                if job_url != '#':
-                    existing = JobMatch.query.filter_by(user_id=user_id, url=job_url).first()
-                    if existing:
-                        continue
-
-                # Check if stopped mid-save
-                if not state.get('scraping', False):
-                    print(f"🛑 Scraping stopped during job save (job {idx+1}/{len(jobs)}), aborting")
-                    state['finished'] = True
-                    return
-
-                new_match = JobMatch(
-                    user_id=user_id,
-                    title=job.get('title', f"{level} Role"),
-                    company=job.get('company', 'Various Companies'),
-                    url=job.get('url', '#'),
-                    source=job.get('name', job.get('source', 'Web Scraper')),
-                    job_type=job_type,
-                    relevance_score=job.get('relevance_score', 0),
-                    salary=job.get('salary', 'Not specified'),
-                    location=job.get('location', 'Remote'),
-                    skills_required=','.join(job.get('skills', [])) if isinstance(job.get('skills'), list) else str(job.get('skills', '')),
-                    region=job.get('region', 'India'),
-                    state_or_continent=job.get('stateOrContinent', 'All')
-                )
-                db.session.add(new_match)
-                db.session.commit()
-                
-                print(f"   💾 Saved job {idx+1}/{len(jobs)}: {job.get('title', 'N/A')}")
-
-                # Add to state
-                state['jobs'].append(job)
-                state['processed_skills'] = min(idx + 1, len(skills))
-
-                # Push to SSE queue
-                state['queue'].put({
-                    'type': 'job',
-                    'data': job,
-                    'total_jobs': len(state['jobs'])
-                })
-
-            # Signal completion
-            state['scraping'] = False
-            state['processed_skills'] = len(skills)
-            state['queue'].put({
-                'type': 'complete',
-                'data': {'total_jobs': len(state['jobs'])}
-            })
+            import requests
+            response = requests.post(n8n_webhook_url, json=payload, timeout=5)
+            print(f"✅ Sent to n8n! Status: {response.status_code}")
             
-            print(f"✅ Scraping complete for user {user_id}: {len(state['jobs'])} jobs saved")
-
+            # Since n8n handles the scraping, we'll mark as complete for the local synchronous queue 
+            # Or we let it remain true and `/api/receive-n8n-jobs` will handle completion when n8n is done.
+            # But the frontend might expect some immediate feedback. We will leave it running, 
+            # and when n8n finishes, it can signal complete. Since n8n is asynchronous, we just return.
+            # We won't set state['scraping'] = False here, we wait for a completion webhook from n8n ideally.
+            # But for now, we leave it open so frontend keeps waiting for jobs.
+            
         except Exception as e:
-            print(f"❌ Error scraping for user {user_id}: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"❌ Failed to reach n8n: {e}")
             state['scraping'] = False
             state['queue'].put({
                 'type': 'error',
-                'data': {'message': str(e)}
+                'data': {'message': f'Failed to reach n8n scraper: {e}'}
             })
-
-        # Mark as done
-        state['finished'] = True
+            state['finished'] = True
 
 # ============ AUTHENTICATION ROUTES ============
 
@@ -774,6 +726,53 @@ def fetch_jobs():
 def dashboard():
     """Serves the new dashboard page for authenticated users."""
     return render_template('dashboard.html')
+
+@app.route('/api/receive-n8n-jobs', methods=['POST'])
+def receive_n8n_jobs():
+    data = request.json
+    
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Create the new job match
+    new_job = JobMatch(
+        user_id=user_id,
+        title=data.get('title', 'N/A'),
+        company=data.get('company', 'N/A'),
+        url=data.get('url', '#'),
+        source=data.get('source', 'n8n Scraper'),
+        relevance_score=data.get('relevance_score', 80),
+        salary=data.get('salary', 'Not specified'),
+        location=data.get('location', 'Remote'),
+        skills_required=data.get('skills_required', ''),
+        region=data.get('region', 'India'),
+        state_or_continent=data.get('state_or_continent', 'All')
+    )
+    
+    db.session.add(new_job)
+    db.session.commit()
+    print(f"✅ Saved new n8n job to DB: {new_job.title} at {new_job.company}")
+    
+    # Update SSE queue if available so UI refreshes
+    state = scraping_state.get(user_id)
+    if state and 'queue' in state:
+        state['jobs'].append({
+            'title': new_job.title,
+            'company': new_job.company,
+            'url': new_job.url,
+            'source': new_job.source,
+            'relevance_score': new_job.relevance_score
+        })
+        state['queue'].put({
+            'type': 'job',
+            'data': state['jobs'][-1],
+            'total_jobs': len(state['jobs'])
+        })
+    
+    return jsonify({"success": True}), 200
 
 @app.route('/api/jobs-by-role/<int:user_id>')
 def api_jobs_by_role(user_id):

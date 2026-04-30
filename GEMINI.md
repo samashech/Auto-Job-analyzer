@@ -57,3 +57,26 @@ Based on the analysis, the following technical implementations should be priorit
     - Correctly identified as **Fresher**.
     - Extracted core tech: **Linux, MySQL, Python, Flask, Django**.
     - Generated relevant results: **Linux Engineer, Backend Developer, and Software Internships**.
+
+---
+
+## 4. System Integration: n8n, Flask Backend, and Next.js Frontend (Planned)
+
+### Objective
+Connect the Next.js frontend, Flask backend, and n8n workflow so that:
+1. When the user clicks "Start Scraping" in the frontend, the n8n workflow triggers.
+2. When the n8n workflow (Apify + Ollama) finishes, the processed jobs are sent back to the application and displayed on the frontend.
+
+### Implementation Plan
+
+**1. n8n Workflow Updates:**
+*   **Trigger Node:** Replace the manual trigger with a **Webhook node** (`POST /webhook/start-scraping`). This allows the backend to start the workflow programmatically.
+*   **Return Node:** At the end of the workflow (after Ollama formats the JSON), add an **HTTP Request node** configured to send a `POST` request to our Flask backend (`http://localhost:5000/api/n8n-webhook/jobs`) containing the extracted job array.
+
+**2. Flask Backend Updates (`app.py`):**
+*   **Trigger Endpoint:** Create an endpoint `POST /api/trigger-scraper`. When called by the frontend, this endpoint will make an HTTP POST request to the n8n Webhook URL.
+*   **Receive Endpoint:** Create a webhook receiver endpoint `POST /api/n8n-webhook/jobs`. This endpoint will receive the final JSON payload from n8n, parse the jobs, calculate match scores (using `analyzer.py`), and insert/update them in the local database (`models.py`).
+
+**3. Next.js Frontend Updates:**
+*   **Trigger Action:** Update the "Start Scraping" button in the `My Jobs` page (or whichever page it resides on) to make an API call to the backend's `/api/trigger-scraper` endpoint.
+*   **UI Feedback & Polling:** Implement a loading state on the button. After triggering the scrape, the frontend will periodically poll the backend's existing `fetchJobs` route (or use a dedicated status endpoint) to check for new jobs. Once new jobs arrive, the UI will automatically update.

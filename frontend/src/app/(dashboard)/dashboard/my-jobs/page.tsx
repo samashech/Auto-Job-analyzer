@@ -203,13 +203,24 @@ export default function MyJobsPage() {
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/debug-jobs/${uploadStatus.userId}`);
           const data = await response.json();
           
-          if (data.finished) {
+          if (data.jobs_in_db > 0) {
+            // Trigger jobs reload via Context dynamically as jobs arrive
+            await fetchJobs(String(uploadStatus.userId));
+            setScrapingStarted(false);
+            setUploading(false);
+            setShowDoneButton(false);
+            setUploadStatus({
+              success: true,
+              message: `✅ Scraping active! Found ${data.jobs_in_db} jobs so far. Scroll down to view.`
+            });
+            // We can break or continue polling for a bit, let's break for simplicity and assume jobs are loaded
+            return;
+          } else if (data.finished) {
             setUploading(false);
             setUploadStatus({
               success: true,
               message: `✅ Finished! Found ${data.jobs_in_db} jobs! Scroll down to view.`
             });
-            // Trigger jobs reload via Context ONLY when fully finished
             await fetchJobs(String(uploadStatus.userId));
             setScrapingStarted(false);
             setShowDoneButton(false);

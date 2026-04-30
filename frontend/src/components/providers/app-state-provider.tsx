@@ -53,9 +53,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [appliedJobIds, setAppliedJobIds] = useState<string[]>([]);
   
-  const [activities, setActivities] = useState<ActivityItem[]>(() =>
-    readStorage<ActivityItem[]>(STORAGE_KEYS.activities, []),
-  );
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+
+  useEffect(() => {
+    setActivities(readStorage<ActivityItem[]>(STORAGE_KEYS.activities, []));
+  }, []);
 
   const fetchJobs = async (userId: string) => {
     try {
