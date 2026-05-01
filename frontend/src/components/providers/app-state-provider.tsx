@@ -72,6 +72,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           location: j.location || "Remote",
           source: j.source || "LinkedIn",
           sourceUrl: j.url,
+          description: j.description || "",
           skills: j.skills || [],
           // Normalize job type from backend (e.g., "Full-time" -> "Full Time")
           type: (j.type || [j.job_type || "Full Time"]).map((t: string) => {

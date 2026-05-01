@@ -10,6 +10,7 @@ export type Job = {
   location: string;
   source: string; // Changed to string to support many platforms (Upwork, Fiverr, Unstop, etc.)
   sourceUrl: string;
+  description: string;
   skills: string[];
   type: JobType[];
   region: JobLocationMode;

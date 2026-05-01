@@ -89,6 +89,12 @@ with app.app_context():
             pass
         
         try:
+            cursor.execute("ALTER TABLE job_match ADD COLUMN description TEXT")
+            print("✅ Added 'description' column to job_match table")
+        except sqlite3.OperationalError:
+            pass
+
+        try:
             cursor.execute("ALTER TABLE job_match ADD COLUMN salary VARCHAR(100)")
             cursor.execute("ALTER TABLE job_match ADD COLUMN location VARCHAR(250)")
             cursor.execute("ALTER TABLE job_match ADD COLUMN skills_required TEXT")
@@ -498,6 +504,7 @@ def get_jobs(user_id):
         'relevance_score': job.relevance_score,
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
+        'description': job.description or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',
@@ -731,46 +738,113 @@ def dashboard():
 def receive_n8n_jobs():
     data = request.json
     
-    user_id = data.get('user_id')
-    user = db.session.get(User, user_id)
+    # Check if this is an array of jobs or a single job
+    if isinstance(data, list):
+        jobs_data = data
+    else:
+        jobs_data = [data]
+        
+    for job_item in jobs_data:
+        # Check if Ollama wrapped it in 'content' with markdown JSON string
+        if 'content' in job_item and isinstance(job_item['content'], str):
+            try:
+                import json
+                import re
+                # Try to extract JSON from markdown code blocks if present
+                content_str = job_item['content']
+                match = re.search(r'```(?:json)?\n(.*?)\n```', content_str, re.DOTALL)
+                if match:
+                    parsed_content = json.loads(match.group(1))
+                else:
+                    parsed_content = json.loads(content_str)
+                    
+                # Merge parsed content into the job_item, prioritizing parsed fields
+                job_item.update(parsed_content)
+            except Exception as e:
+                print(f"⚠️ Failed to parse n8n content block: {e}")
+                pass # Proceed with what we have
     
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+        user_id = job_item.get('user_id')
+        if not user_id:
+            # Fallback to session if available, or just use 1 for testing if needed
+            user_id = session.get('user_id', 1) 
+            
+        user = db.session.get(User, user_id)
+        
+        if not user:
+            print(f"⚠️ User {user_id} not found for n8n job")
+            continue
 
-    # Create the new job match
-    new_job = JobMatch(
-        user_id=user_id,
-        title=data.get('title', 'N/A'),
-        company=data.get('company', 'N/A'),
-        url=data.get('url', '#'),
-        source=data.get('source', 'n8n Scraper'),
-        relevance_score=data.get('relevance_score', 80),
-        salary=data.get('salary', 'Not specified'),
-        location=data.get('location', 'Remote'),
-        skills_required=data.get('skills_required', ''),
-        region=data.get('region', 'India'),
-        state_or_continent=data.get('state_or_continent', 'All')
-    )
-    
-    db.session.add(new_job)
-    db.session.commit()
-    print(f"✅ Saved new n8n job to DB: {new_job.title} at {new_job.company}")
-    
-    # Update SSE queue if available so UI refreshes
-    state = scraping_state.get(user_id)
-    if state and 'queue' in state:
-        state['jobs'].append({
-            'title': new_job.title,
-            'company': new_job.company,
-            'url': new_job.url,
-            'source': new_job.source,
-            'relevance_score': new_job.relevance_score
-        })
-        state['queue'].put({
-            'type': 'job',
-            'data': state['jobs'][-1],
-            'total_jobs': len(state['jobs'])
-        })
+        # Robust field mapping (n8n might send job_title instead of title)
+        title = job_item.get('title') or job_item.get('job_title', 'N/A')
+        company = job_item.get('company') or 'N/A'
+        
+        raw_url = job_item.get('url') or job_item.get('link') or '#'
+        
+        # Ensure URL is absolute to prevent frontend 404s
+        if raw_url != '#' and not raw_url.startswith(('http://', 'https://')):
+            # Sometimes n8n sends markdown links like [https://...](https://...)
+            import re
+            md_match = re.search(r'\]\((.*?)\)', raw_url)
+            if md_match:
+                url = md_match.group(1)
+            elif raw_url.startswith('www.'):
+                url = 'https://' + raw_url
+            else:
+                url = 'https://' + raw_url
+        else:
+            url = raw_url
+            
+        # Also clean up markdown URLs if they snuck in with http prefix
+        if url.startswith('http') and '](' in url:
+            import re
+            md_match = re.search(r'\]\((.*?)\)', url)
+            if md_match:
+                url = md_match.group(1)
+
+        skills_list = job_item.get('skills', [])
+        if isinstance(skills_list, list):
+            skills_str = ', '.join(skills_list)
+        else:
+            skills_str = str(skills_list)
+
+        # Create the new job match
+        new_job = JobMatch(
+            user_id=user_id,
+            title=title,
+            company=company,
+            url=url,
+            source=job_item.get('source', 'n8n Scraper'),
+            relevance_score=job_item.get('relevance_score', 80),
+            salary=job_item.get('salary', 'Not specified'),
+            location=job_item.get('location', 'Remote'),
+            description=job_item.get('description', ''),
+            skills_required=skills_str,
+            region=job_item.get('region', 'India'),
+            state_or_continent=job_item.get('state_or_continent', 'All')
+        )
+        
+        db.session.add(new_job)
+        db.session.commit()
+        print(f"✅ Saved new n8n job to DB: {new_job.title} at {new_job.company}")
+        
+        # Update SSE queue if available so UI refreshes
+        state = scraping_state.get(user_id)
+        if state and 'queue' in state:
+            state['jobs'].append({
+                'id': new_job.id,
+                'title': new_job.title,
+                'company': new_job.company,
+                'url': new_job.url,
+                'source': new_job.source,
+                'description': new_job.description,
+                'relevance_score': new_job.relevance_score
+            })
+            state['queue'].put({
+                'type': 'job',
+                'data': state['jobs'][-1],
+                'total_jobs': len(state['jobs'])
+            })
     
     return jsonify({"success": True}), 200
 
@@ -799,6 +873,7 @@ def api_jobs_by_role(user_id):
         'saved': job.saved,
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
+        'description': job.description or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',
@@ -837,6 +912,7 @@ def api_all_jobs(user_id):
         'saved': job.saved,
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
+        'description': job.description or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',
@@ -885,6 +961,7 @@ def api_saved_jobs(user_id):
         'relevance_score': job.relevance_score,
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
+        'description': job.description or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',

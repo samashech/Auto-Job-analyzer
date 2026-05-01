@@ -1,16 +1,18 @@
 "use client";
 
-import { ExternalLink, MapPin, Star } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ChevronUp, ExternalLink, MapPin, Star } from "lucide-react";
 import { Job } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useAppState } from "@/components/providers/app-state-provider";
 
 export function JobCard({ job }: { job: Job }) {
   const { savedJobIds, toggleSaveJob, applyJob } = useAppState();
+  const [isExpanded, setIsExpanded] = useState(false);
   const saved = savedJobIds.includes(job.id);
 
   return (
-    <article className="rounded-2xl border border-cyan-400/20 bg-slate-900/70 p-5 shadow-[0_10px_40px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+    <article className="rounded-2xl border border-cyan-400/20 bg-slate-900/70 p-5 shadow-[0_10px_40px_rgba(2,6,23,0.55)] backdrop-blur-xl transition-all hover:border-cyan-400/40">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-100">{job.title}</h3>
@@ -32,12 +34,14 @@ export function JobCard({ job }: { job: Job }) {
       </div>
 
       <div className="mt-4 space-y-2 text-sm text-slate-300">
-        <p className="font-medium text-cyan-300">{job.salary}</p>
+        <div className="flex items-center justify-between">
+          <p className="font-medium text-cyan-300">{job.salary}</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{job.source}</p>
+        </div>
         <p className="inline-flex items-center gap-1.5 text-slate-400">
           <MapPin className="h-4 w-4" />
           {job.location}
         </p>
-        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Source: {job.source}</p>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -48,13 +52,42 @@ export function JobCard({ job }: { job: Job }) {
         ))}
       </div>
 
+      {job.description && (
+        <div className="mt-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 text-xs font-medium text-slate-400 transition hover:text-cyan-300"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3 w-3" />
+                Hide Details
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3 w-3" />
+                Show Details
+              </>
+            )}
+          </button>
+
+          {isExpanded && (
+            <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="rounded-lg bg-slate-800/50 p-3 text-sm text-slate-300 leading-relaxed whitespace-pre-wrap border border-slate-700/50">
+                {job.description}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="mt-5">
         <a
           href={job.sourceUrl}
           target="_blank"
           rel="noreferrer"
           onClick={() => applyJob(job.id)}
-          className="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-3.5 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 px-3.5 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"
         >
           Apply Now
           <ExternalLink className="h-4 w-4" />

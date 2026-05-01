@@ -43,6 +43,7 @@ class JobMatch(db.Model):
     saved = db.Column(db.Boolean, default=False) # User bookmarked this job
     
     # Extended Job Fields (Frontend Support)
+    description = db.Column(db.Text, nullable=True)
     salary = db.Column(db.String(100), nullable=True)
     location = db.Column(db.String(250), nullable=True)
     skills_required = db.Column(db.Text, nullable=True) # Comma separated
