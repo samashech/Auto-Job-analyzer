@@ -7,10 +7,11 @@
 ## 🚀 Features
 
 - **Automated Resume Parsing**: Upload your PDF resume, and RAIoT will extract your core skills and determine your experience level using Natural Language Processing (spaCy).
-- **Live Job Market Scraping**: Utilizes `Playwright` with stealth configurations to bypass anti-bot mechanisms and scrape real-time job postings from various platforms.
+- **AI-Powered Job Automation**: Integrates with **n8n** and **Ollama (LLM)** to intelligently scrape, clean, and structure messy job board data into usable JSON formats.
+- **Rich Job Market Intelligence**: Scrapes real-time postings including comprehensive job descriptions, direct application URLs, salaries, and employment types via Apify.
 - **Intelligent Match Scoring**: Dynamically compares your extracted skills against job requirements to calculate a personalized percentage match score.
 - **Data Visualization**: Generates professional trend charts using `Matplotlib` and `Seaborn` to show you which of your skills are most in demand.
-- **Modern Interactive Dashboard**: A sleek, responsive frontend built with Next.js, Tailwind CSS, and Framer Motion for a seamless user experience.
+- **Modern Interactive Dashboard**: A sleek, responsive frontend built with Next.js, Tailwind CSS, and Framer Motion featuring expandable job details and real-time data streaming.
 - **Telegram Notifications**: (Optional) Get automated alerts, summaries, and trend charts sent directly to your Telegram.
 
 ---
@@ -26,7 +27,9 @@
 ### Backend & Data Science
 - **Server**: Python 3.10+ with Flask
 - **Database**: SQLite with SQLAlchemy (via Flask-SQLAlchemy)
-- **Scraping**: Playwright, Playwright-Stealth, BeautifulSoup4
+- **Automation & Orchestration**: n8n (Node-Based Workflow Automation)
+- **AI & LLMs**: Ollama (for unstructured data parsing)
+- **Scraping**: Apify, Playwright, BeautifulSoup4
 - **NLP & Parsing**: spaCy, PyPDF2
 - **Visualization**: Matplotlib, Seaborn, Pandas
 - **API Integration**: Telegram Bot API (via Requests)
