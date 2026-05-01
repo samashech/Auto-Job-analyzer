@@ -1,14 +1,14 @@
-# RAIoT: Resume Analysis & Intelligent Opportunity Tracking 🚀
+# Align 🚀
 
-**RAIoT** is a full-stack web application designed to bridge the gap between a candidate's resume and the current job market. It analyzes your resume, extracts your skills, scrapes live job postings, and intelligently matches you with the best opportunities.
+**Align** (formerly RAIoT) is an intelligent, full-stack platform designed to bridge the gap between a candidate's resume and the current job market. It analyzes your resume, extracts your core skills using NLP, orchestrates AI-driven job scraping, and matches you with your best opportunities in real-time.
 
 ---
 
 ## 🚀 Features
 
-- **Automated Resume Parsing**: Upload your PDF resume, and RAIoT will extract your core skills and determine your experience level using Natural Language Processing (spaCy).
+- **Automated Resume Parsing**: Upload your PDF/DOCX resume, and Align will extract your core skills and determine your experience level using Natural Language Processing (spaCy).
 - **AI-Powered Job Automation**: Integrates with **n8n** and **Ollama (LLM)** to intelligently scrape, clean, and structure messy job board data into usable JSON formats.
-- **Rich Job Market Intelligence**: Scrapes real-time postings including comprehensive job descriptions, direct application URLs, salaries, and employment types via Apify.
+- **Rich Job Market Intelligence**: Scrapes real-time postings including comprehensive job descriptions, direct application URLs, salaries, and employment types using Apify.
 - **Intelligent Match Scoring**: Dynamically compares your extracted skills against job requirements to calculate a personalized percentage match score.
 - **Data Visualization**: Generates professional trend charts using `Matplotlib` and `Seaborn` to show you which of your skills are most in demand.
 - **Modern Interactive Dashboard**: A sleek, responsive frontend built with Next.js, Tailwind CSS, and Framer Motion featuring expandable job details and real-time data streaming.
@@ -28,29 +28,30 @@
 - **Server**: Python 3.10+ with Flask
 - **Database**: SQLite with SQLAlchemy (via Flask-SQLAlchemy)
 - **Automation & Orchestration**: n8n (Node-Based Workflow Automation)
-- **AI & LLMs**: Ollama (for unstructured data parsing)
+- **AI & LLMs**: Ollama (Local AI execution)
 - **Scraping**: Apify, Playwright, BeautifulSoup4
 - **NLP & Parsing**: spaCy, PyPDF2
 - **Visualization**: Matplotlib, Seaborn, Pandas
-- **API Integration**: Telegram Bot API (via Requests)
 
 ---
 
 ## 📂 Project Structure
 
 ```
-Project RAIoT/
+Align/
 ├── frontend/               # Next.js frontend application
-│   ├── src/app/            # Next.js App Router pages and layouts
-│   └── src/components/     # Reusable React components
+│   ├── src/app/            # App Router pages (Dashboard, Auth, etc.)
+│   ├── src/components/     # Reusable UI and layout components
+│   └── src/lib/            # Types, utilities, and application state
 ├── app.py                  # Main Flask application entry point
 ├── analyzer.py             # Resume parsing and NLP skill extraction logic
-├── scraper.py              # Stealth web scraping for job postings
-├── visualizer.py           # Generation of skill demand trend charts
 ├── models.py               # SQLAlchemy database models
-├── notifier.py             # Telegram notification integration
-├── run.sh                  # Shell script to run both frontend and backend
-└── requirements.txt        # Python backend dependencies
+├── visualizer.py           # Generation of skill demand trend charts
+├── scraper.py              # Legacy/Fallback scraping implementations
+├── instance/               # Contains the SQLite database (raiot.db)
+├── uploads/                # Local storage for uploaded resumes
+├── requirements.txt        # Python backend dependencies
+└── run.sh                  # Shell script to orchestrate frontend & backend startup
 ```
 
 ---
@@ -58,16 +59,20 @@ Project RAIoT/
 ## ⚙️ Installation & Setup
 
 ### 1. Prerequisites
-- Python 3.10 or higher
-- Node.js (v18+) and npm
+Ensure you have the following installed on your system:
+- **Python 3.10** or higher
+- **Node.js (v18+)** and npm
+- **n8n**: For workflow automation ([Installation Guide](https://docs.n8n.io/hosting/))
+- **Ollama**: For local AI parsing ([Download Ollama](https://ollama.com/))
+- **Apify Account**: For running the LinkedIn/job board scrapers.
 
-### 2. Clone the repository
+### 2. Clone the Repository
 ```bash
-git clone https://github.com/your-username/project-raiot.git
-cd "project-raiot"
+git clone https://github.com/samashech/Align.git
+cd Align
 ```
 
-### 3. Backend Setup (Python)
+### 3. Backend Setup (Flask/Python)
 Create and activate a virtual environment, then install dependencies:
 ```bash
 # Create virtual environment
@@ -81,23 +86,38 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Install Playwright browsers (Required for scraping)
+# Install Playwright browsers (Required for fallback scraping)
 playwright install chromium
 ```
 
-### 4. Frontend Setup (Node.js)
-Install the Next.js dependencies:
+### 4. Frontend Setup (Next.js)
+Install the frontend dependencies:
 ```bash
 cd frontend
 npm install
 cd ..
 ```
 
+### 5. AI & Automation Setup (Ollama & n8n)
+To power the intelligent data extraction, you need to configure the AI pipeline:
+
+1. **Start Ollama & Pull the Model**:
+   Open a terminal and ensure your local Ollama instance has the required model:
+   ```bash
+   ollama pull llama3.1:8b
+   ```
+2. **Configure n8n**:
+   - Start your n8n instance.
+   - Import your workflow into n8n.
+   - Ensure the **Apify node** is configured with your API key.
+   - Ensure the **Ollama node** points to your local instance (usually `http://localhost:11434`) and is set to use the `llama3.1:8b` model.
+   - Ensure the **HTTP Request node** is configured to POST data back to `http://localhost:5000/api/receive-n8n-jobs`.
+
 ---
 
 ## 🚀 Usage
 
-You can run both the Next.js frontend and the Flask backend simultaneously using the provided startup script:
+You can run both the Next.js frontend and the Flask backend simultaneously using the provided startup script from the root directory:
 
 ```bash
 chmod +x run.sh
@@ -110,23 +130,8 @@ chmod +x run.sh
 - Gracefully shuts down both servers when you press `Ctrl+C`.
 
 **Accessing the Application:**
-- **Dashboard**: Open your browser and navigate to `http://localhost:3000`
+- **Web Dashboard**: Navigate to `http://localhost:3000`
 - **Backend API**: `http://localhost:5000`
-
----
-
-## 🤖 Optional: Telegram Alerts
-
-To enable Telegram notifications for automated job matches:
-1. Create a bot via [@BotFather](https://t.me/botfather) and get your `TELEGRAM_BOT_TOKEN`.
-2. Get your `TELEGRAM_CHAT_ID`.
-3. Update the credentials in `notifier.py`.
-
----
-
-## ⚠️ Disclaimer
-
-This tool is for educational purposes only. Always respect the `robots.txt` and Terms of Service of any website you scrape. Use responsibly and avoid excessive requests. The scraping implementation uses stealth techniques, but it is your responsibility to use them ethically.
 
 ---
 
