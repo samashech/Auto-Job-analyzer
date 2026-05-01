@@ -90,7 +90,16 @@ with app.app_context():
         
         try:
             cursor.execute("ALTER TABLE job_match ADD COLUMN description TEXT")
-            print("✅ Added 'description' column to job_match table")
+        except sqlite3.OperationalError:
+            pass
+            
+        try:
+            cursor.execute("ALTER TABLE job_match ADD COLUMN job_function VARCHAR(150)")
+        except sqlite3.OperationalError:
+            pass
+            
+        try:
+            cursor.execute("ALTER TABLE job_match ADD COLUMN expiry_date VARCHAR(50)")
         except sqlite3.OperationalError:
             pass
 
@@ -505,6 +514,8 @@ def get_jobs(user_id):
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
         'description': job.description or '',
+        'job_function': job.job_function or '',
+        'expiry_date': job.expiry_date or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',
@@ -838,6 +849,8 @@ def receive_n8n_jobs():
                 'url': new_job.url,
                 'source': new_job.source,
                 'description': new_job.description,
+                'job_function': new_job.job_function,
+                'expiry_date': new_job.expiry_date,
                 'relevance_score': new_job.relevance_score
             })
             state['queue'].put({
@@ -874,6 +887,8 @@ def api_jobs_by_role(user_id):
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
         'description': job.description or '',
+        'job_function': job.job_function or '',
+        'expiry_date': job.expiry_date or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',
@@ -913,6 +928,8 @@ def api_all_jobs(user_id):
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
         'description': job.description or '',
+        'job_function': job.job_function or '',
+        'expiry_date': job.expiry_date or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',
@@ -962,6 +979,8 @@ def api_saved_jobs(user_id):
         'salary': job.salary or 'Not specified',
         'location': job.location or 'Remote',
         'description': job.description or '',
+        'job_function': job.job_function or '',
+        'expiry_date': job.expiry_date or '',
         'skills': [s.strip() for s in job.skills_required.split(',')] if job.skills_required else [],
         'region': job.region or 'India',
         'stateOrContinent': job.state_or_continent or 'All',

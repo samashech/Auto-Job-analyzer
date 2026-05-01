@@ -44,6 +44,8 @@ class JobMatch(db.Model):
     
     # Extended Job Fields (Frontend Support)
     description = db.Column(db.Text, nullable=True)
+    job_function = db.Column(db.String(150), nullable=True)
+    expiry_date = db.Column(db.String(50), nullable=True)
     salary = db.Column(db.String(100), nullable=True)
     location = db.Column(db.String(250), nullable=True)
     skills_required = db.Column(db.Text, nullable=True) # Comma separated
