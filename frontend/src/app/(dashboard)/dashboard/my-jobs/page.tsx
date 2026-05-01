@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Filter, Upload, FileText, Loader2, CheckCircle, ArrowRight, Star } from "lucide-react";
-import { continents, indianStates } from "@/lib/jobs-data";
+import { countries, indianStates } from "@/lib/jobs-data";
 import { JobType } from "@/lib/types";
 import { JobCard } from "@/components/dashboard/job-card";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -178,7 +178,11 @@ export default function MyJobsPage() {
       const startRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/start-scraping`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: uploadStatus.userId, job_type: selectedTypes.length > 0 ? selectedTypes[0] : 'Full Time' })
+        body: JSON.stringify({ 
+          user_id: uploadStatus.userId, 
+          job_type: selectedTypes.length > 0 ? selectedTypes[0] : 'Full Time',
+          preferred_location: stateOrContinent === "All" ? region : (region === "India" ? `${stateOrContinent}, India` : stateOrContinent)
+        })
       });
       
       if (!startRes.ok) {
@@ -298,20 +302,21 @@ export default function MyJobsPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2 text-sm text-slate-300">
-                Location Mode
-                <select {...register("region")} className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100">
+                Location Mode <span className="text-rose-500">*</span>
+                <select {...register("region")} required className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100">
                   <option value="India">India</option>
                   <option value="International">International</option>
                 </select>
               </label>
 
               <label className="space-y-2 text-sm text-slate-300">
-                {region === "India" ? "State / Territory" : "Continent"}
+                State / Country <span className="text-rose-500">*</span>
                 <select
                   {...register("stateOrContinent")}
+                  required
                   className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
                 >
-                  {(region === "India" ? indianStates : continents).map((item) => (
+                  {(region === "India" ? indianStates : countries).map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>

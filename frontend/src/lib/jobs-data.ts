@@ -121,4 +121,24 @@ export const indianStates = [
   "Puducherry",
 ];
 
-export const continents = ["All", "Asia", "Europe", "North America", "South America", "Africa", "Oceania"];
+export const countries = [
+  "All",
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "Singapore",
+  "United Arab Emirates",
+  "Netherlands",
+  "Japan",
+  "Switzerland",
+  "New Zealand",
+  "Ireland",
+  "Sweden",
+  "Spain",
+  "Italy",
+  "Brazil",
+  "South Africa"
+];

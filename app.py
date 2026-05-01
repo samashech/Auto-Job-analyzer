@@ -654,18 +654,23 @@ def start_scraping():
         print(f"⚠ Error clearing old jobs: {e}")
         db.session.rollback()
 
+    preferred_location = data.get('preferred_location', 'All, India')
+    scrape_region = 'India' if 'India' in preferred_location else 'International'
+    scrape_state = preferred_location.split(',')[0].strip() if ',' in preferred_location else preferred_location
+
     # Re-initialize scraping state just in case it was modified
     skills_list = [s.strip() for s in user.skills.split(',') if s.strip()]
-    
+
     scraping_state[user.id] = {
         'jobs': [],
         'scraping': True,
         'finished': False,
         'queue': Queue(),
         'total_skills': len(skills_list),
-        'processed_skills': 0
+        'processed_skills': 0,
+        'region': scrape_region,
+        'state_or_continent': scrape_state
     }
-
     # Start background scraping
     scrape_thread = threading.Thread(
         target=background_scrape_job,
@@ -819,6 +824,10 @@ def receive_n8n_jobs():
         else:
             skills_str = str(skills_list)
 
+        state = scraping_state.get(user_id, {})
+        default_region = state.get('region', 'India')
+        default_state = state.get('state_or_continent', 'All')
+
         # Create the new job match
         new_job = JobMatch(
             user_id=user_id,
@@ -826,13 +835,16 @@ def receive_n8n_jobs():
             company=company,
             url=url,
             source=job_item.get('source', 'n8n Scraper'),
+            job_type=job_item.get('job_type', 'Full Time'),
             relevance_score=job_item.get('relevance_score', 80),
             salary=job_item.get('salary', 'Not specified'),
             location=job_item.get('location', 'Remote'),
             description=job_item.get('description', ''),
+            job_function=job_item.get('job_function', ''),
+            expiry_date=job_item.get('expiry_date', ''),
             skills_required=skills_str,
-            region=job_item.get('region', 'India'),
-            state_or_continent=job_item.get('state_or_continent', 'All')
+            region=job_item.get('region', default_region),
+            state_or_continent=job_item.get('state_or_continent', default_state)
         )
         
         db.session.add(new_job)
