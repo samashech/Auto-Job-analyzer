@@ -274,7 +274,10 @@ export default function MyJobsPage() {
           !selectedTypes.length || selectedTypes.some((selected) => 
             job.type.some(t => t.replace('-', ' ').toLowerCase() === selected.toLowerCase())
           );
-        const role = extractRole(job.title);
+        let role = extractRole(job.title);
+        if (job.source && job.source.toLowerCase() === "unstop") {
+          role = "Hackathons";
+        }
         const byRole = selectedRole === "All" || role.toLowerCase() === selectedRole.toLowerCase();
         return byRegion && byLocation && byType && byRole;
       })
