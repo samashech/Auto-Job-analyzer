@@ -58,7 +58,13 @@ export default function MyJobsPage() {
   const uniqueRoles = useMemo(() => {
     const roleMap = new Map<string, string>();
     jobs.forEach((job) => {
-      const role = extractRole(job.title);
+      let role = extractRole(job.title);
+      
+      // Group Unstop jobs into a single "Hackathons" tab
+      if (job.source && job.source.toLowerCase() === "unstop") {
+        role = "Hackathons";
+      }
+
       const lower = role.toLowerCase();
       if (!roleMap.has(lower) && lower.length > 0) {
         roleMap.set(lower, role);
