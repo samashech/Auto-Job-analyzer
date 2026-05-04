@@ -7,12 +7,12 @@
 ## 🚀 Features
 
 - **Automated Resume Parsing**: Upload your PDF/DOCX resume, and Align will extract your core skills and determine your experience level using Natural Language Processing (spaCy).
-- **AI-Powered Job Automation**: Integrates with **n8n** and **Ollama (LLM)** to intelligently scrape, clean, and structure messy job board data into usable JSON formats.
-- **Rich Job Market Intelligence**: Scrapes real-time postings including comprehensive job descriptions, direct application URLs, salaries, and employment types using Apify.
+- **Parallel Multi-Source Scraping**: Powered by an advanced n8n workflow, Align simultaneously scrapes jobs, internships, and hackathons from **LinkedIn, Indeed, Glassdoor, Internshala, Unstop, and Google Jobs** in real-time.
+- **Global Dynamic Location Filtering**: Search for opportunities perfectly tailored to your region. Select any Indian State or filter across 15+ International Countries, and the backend dynamically routes ISO country codes and geo-coordinates to the respective scrapers.
+- **AI-Powered Data Standardization**: Integrates with **Ollama (LLM)** to intelligently ingest messy, unstructured HTML descriptions from 6 different platforms and parse them into a unified, strict JSON format.
+- **Rich Job Market Intelligence**: Automatically extracts and displays deep insights including full job descriptions, real application URLs, salary/stipend ranges, job functions, and application deadlines directly on the UI.
+- **Intelligent Dashboard UI**: A sleek, responsive frontend built with Next.js and Tailwind CSS featuring uniform `flex-grow` job cards, subtle missing-data fallbacks ("Apply to confirm"), and an automated "Hackathons" grouping tab to keep the filter bar clean.
 - **Intelligent Match Scoring**: Dynamically compares your extracted skills against job requirements to calculate a personalized percentage match score.
-- **Data Visualization**: Generates professional trend charts using `Matplotlib` and `Seaborn` to show you which of your skills are most in demand.
-- **Modern Interactive Dashboard**: A sleek, responsive frontend built with Next.js, Tailwind CSS, and Framer Motion featuring expandable job details and real-time data streaming.
-- **Telegram Notifications**: (Optional) Get automated alerts, summaries, and trend charts sent directly to your Telegram.
 
 ---
 
