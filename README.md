@@ -133,7 +133,8 @@ chmod +x run.sh
 - **Web Dashboard**: Navigate to `http://localhost:3000`
 - **Backend API**: `http://localhost:5000`
 
----
+------
+
 
 ## 👨‍💻 Authors
 
