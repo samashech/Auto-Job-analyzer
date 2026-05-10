@@ -1,6 +1,6 @@
-# Align 🚀
+# Align 
 
-**Align** (formerly RAIoT) is an intelligent, full-stack platform designed to bridge the gap between a candidate's resume and the current job market. It analyzes your resume, extracts your core skills using NLP, orchestrates AI-driven job scraping, and matches you with your best opportunities in real-time.
+**Align** is an intelligent, full-stack platform designed to bridge the gap between a candidate's resume and the current job market. It analyzes your resume, extracts your core skills using NLP, orchestrates AI-driven job scraping, and matches you with your best opportunities in real-time.
 
 ---
 
