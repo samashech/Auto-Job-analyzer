@@ -28,7 +28,7 @@
 - `stateOrContinent`: j.stateOrContinent || "All"
 
 #### ✅ Issue 4: Update Profile Sends Extended Fields (Lines 215-236)
-**Before**: Only sent name, email, skills  
+**Before**: Only sent name, email, skills and
 **After**: Sends ALL profile fields to backend:
 - name, email, phone, skills
 - about, projects, achievements
